@@ -1,0 +1,33 @@
+# Issue labels for this repository.
+#
+# Apply with the GitHub CLI (one-off, from the repo root):
+#   gh label create bug            --color d73a4a --description "Something isn't working" --force
+#   gh label create enhancement    --color a2eeef --description "New feature or request" --force
+#   gh label create documentation  --color 0075ca --description "Docs and comments" --force
+#   gh label create "good first issue" --color 7057ff --description "Good for newcomers" --force
+#   gh label create evaluation     --color fbca04 --description "Metrics, ablations, robustness" --force
+#   gh label create responsible-ai --color 5319e7 --description "Safety, licensing, privacy, fairness" --force
+#
+# The last two are project-specific: they let the evaluation and Responsible AI
+# work be tracked as first-class, rather than disappearing into "enhancement".
+# Labelled issues are also how discrete tasks get handed to a coding agent.
+
+labels:
+  - name: bug
+    color: d73a4a
+    description: Something isn't working
+  - name: enhancement
+    color: a2eeef
+    description: New feature or request
+  - name: documentation
+    color: 0075ca
+    description: Docs and comments
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+  - name: evaluation
+    color: fbca04
+    description: Metrics, ablations, robustness
+  - name: responsible-ai
+    color: 5319e7
+    description: Safety, licensing, privacy, fairness

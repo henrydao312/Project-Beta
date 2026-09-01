@@ -108,7 +108,7 @@ def test_no_verification_reports_are_committed() -> None:
     offenders = [
         str(p.relative_to(REPO_ROOT))
         for p in _tracked_files()
-        if re.fullmatch(r"(report|verification)_.*\.json", p.name)
+        if re.fullmatch(r".*(report|verification).*\.json", p.name)
     ]
     assert not offenders, (
         "Verification reports carry vendor-derived data and must not be "

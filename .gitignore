@@ -1,0 +1,52 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Market data — redistribution is prohibited by the data provider's terms.
+# See README "Data: why the dataset isn't here" and Outline §20.5.
+data/raw/
+data/processed/
+*.parquet
+*.csv
+!data/fixtures/*.csv
+
+# Verification reports — these carry vendor-derived figures (per-day IEX
+# volume, bar counts, timestamps) and fall under the same redistribution
+# constraint as the bars they were computed from. Findings get summarised in
+# the docs; the raw reports stay out. See Outline §20.1 and §20.5.
+report_*.json
+verification_*.json
+
+# Decision logs — full-history logs approximate a price series (Outline §20.5).
+# Only bounded sample logs belong in the repo.
+logs/
+runs/
+!data/fixtures/sample_decisions.jsonl
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+
+# Scaffold delivery archive — not part of the source tree.
+scaffold.tar.gz
+
+# Scheduled-run logs
+run_market_open.log
+launchd.*.log
+
+# Verification reports, second pattern. The name-prefixed rule above misses
+# "alpaca_verification_report.json", which is exactly the file that reached
+# a public repo on 2026-09-01. Match the word anywhere in the name.
+*verification*.json
+*report*.json
+
+# Delivery archives
+*.tar.gz
