@@ -1,0 +1,35 @@
+# Example backtest configuration.
+#
+# Every published result traces to one of these files. The date range and
+# walk-forward windows below are the verified defaults: SIP 5-minute history
+# begins 2016-06-10 (confirmed by API probe; 2015 returns nothing), and
+# 36/6/6 yields ~14 folds across that span.
+run_id: run_example_backtest
+mode: backtest              # backtest | paper | replay
+
+data:
+  symbol: SPY
+  timeframe: 5Min
+  feed: sip                 # sip for backtest, iex for paper (see config.py)
+  session: rth_only         # extended-hours bars are filtered at ingestion
+  start: 2016-06-10
+  end: 2026-06-30
+  dataset_hash: null        # set once the dataset is built
+
+risk:
+  max_drawdown: 0.15
+  daily_loss_limit: 500.0
+  max_position: 10000.0
+  sizing: vol_adjusted_v1
+  halt:
+    data_staleness_bars: 3
+    max_consecutive_api_errors: 5
+    auto_halt_enabled: true
+  regime_abstain: []        # set from evidence after M2 calibration
+
+walk_forward:
+  train_months: 36
+  test_months: 6
+  step_months: 6
+
+seed: 42
