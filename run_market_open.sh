@@ -53,15 +53,23 @@ $PY -c "import websockets; print('websockets:', websockets.__version__)" \
   || echo "WARNING: websockets unavailable — the --stream check will be SKIPPED"
 
 echo
-echo "───────────────── 1/2  live feed + streaming latency ─────────────────"
+echo "──────────────── 1/3  live feed + streaming latency ─────────────────"
 $PY verify_alpaca_data.py --feed iex --stream --out report_live.json
 echo "exit: $?"
 
 echo
-echo "───────────────── 2/2  options historical depth ──────────────────────"
+echo "───────────────── 2/3  options historical depth ──────────────────────"
 $PY probe_options_depth.py
 echo "exit: $?"
 
 echo
+echo "───────────────── 3/3  options history START date ────────────────────"
+# Not market-hours dependent (historical bars only), but it rides along here so
+# the whole options question is answered by one scheduled run. Decides whether
+# options clears 48 months = one 36/6/6 walk-forward fold.
+$PY probe_options_start.py
+echo "exit: $?"
+
+echo
 echo "Done $(date '+%H:%M:%S %Z'). Reports:"
-ls -la report_live.json report_options_depth.json 2>/dev/null || echo "  (some reports missing — see above)"
+ls -la report_live.json report_options_depth.json report_options_start.json 2>/dev/null || echo "  (some reports missing — see above)"
