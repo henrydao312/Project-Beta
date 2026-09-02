@@ -13,7 +13,7 @@
 
 set -uo pipefail
 
-PROJECT_DIR="$HOME/Desktop/Project-Beta"
+PROJECT_DIR="$HOME/dev/Project-Beta"
 cd "$PROJECT_DIR" || { echo "FATAL: $PROJECT_DIR not found"; exit 1; }
 
 LOG="$PROJECT_DIR/run_market_open.log"
