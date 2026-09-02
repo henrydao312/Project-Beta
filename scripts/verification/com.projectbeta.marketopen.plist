@@ -10,7 +10,7 @@
     <array>
         <string>/bin/bash</string>
         <string>--</string>
-        <string>/Users/god/dev/Project-Beta/run_market_open.sh</string>
+        <string>/Users/god/dev/Project-Beta/scripts/verification/run_market_open.sh</string>
     </array>
 
     <!-- 06:30 local time = 09:30 ET, the opening bell. launchd uses the
