@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# HISTORICAL — already executed on 2026-09-01. The move it performs is done;
+# the project now lives at ~/dev/Project-Beta. Kept as a record of the fix,
+# not as a script to run again. Its preflight will refuse to re-run.
 # PROJECT BETA — move the project out of the macOS TCC-protected Desktop.
 #
 # WHY: ~/Desktop is a macOS TCC (privacy) protected location. A launchd agent
