@@ -156,3 +156,26 @@ def test_required_repo_files_exist(filename: str) -> None:
 
 def test_ci_workflow_exists() -> None:
     assert (REPO_ROOT / ".github" / "workflows" / "ci.yml").is_file()
+
+
+# ----------------------------------------------------- prespecified evaluation
+
+
+def test_evaluation_protocol_is_locked() -> None:
+    """Outline §17 criterion 4 promises a *prespecified* risk-adjusted metric,
+    and §20.2 harm 3 lists that prespecification as a guardrail.
+
+    A guardrail with no document behind it is a sentence. This asserts the
+    document exists, declares itself locked, and names exactly one primary
+    metric rather than the disjunction ("Sharpe or maximum drawdown") that the
+    Outline originally carried, which was two chances at one claim.
+    """
+    path = REPO_ROOT / "EVALUATION_PROTOCOL.md"
+    assert path.is_file(), "EVALUATION_PROTOCOL.md must exist before M-tier runs"
+    text = path.read_text()
+    assert "LOCKED" in text, "the protocol must declare itself locked"
+    assert "decision-log entry" in text, "it must state how it may be changed"
+    assert "Minimum detectable" in text, (
+        "the protocol must state what the design can detect, so a null result "
+        "is interpretable rather than surprising"
+    )

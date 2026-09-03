@@ -177,13 +177,13 @@ risk:
   halt: {data_staleness_bars: 3, max_consecutive_api_errors: 5, auth_failure: true, auto_halt_enabled: true}
   regime_abstain: []
 costs: {commission_bps: 0.5, spread_bps: 1.0, slippage_model: sqrt_vol_v1, fill_delay_bars: 1, cost_multiplier: 1.0}
-walk_forward: {train_months: 36, test_months: 6, step_months: 6}
+walk_forward: {train_months: 30, validation_months: 6, test_months: 6, step_months: 6}
 seed: 42
 ```
 
 **`data.start` and fold counts are asset-class specific** (Outline §7A):
 
-| asset_class | data.start | session | folds at 36/6/6 |
+| asset_class | data.start | session | folds at 30/6/6 |
 |---|---|---|---|
 | `equity` | 2016-06-10 | `rth_only` | ~14 |
 | `crypto` | ≥2021-06-10 | `continuous` | ~4 |

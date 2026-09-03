@@ -168,7 +168,7 @@ Four rungs, not six. **The ablation ladder is equities-only**, on the SIP backte
 
 Three asset classes, three *kinds of claim*. The tier is set by measured history, not by preference.
 
-| Track | History | Folds at 36/6/6 | Tier | What it claims |
+| Track | History | Folds at 30/6/6 | Tier | What it claims |
 |---|---|---|---|---|
 | **Equities (SPY, SIP)** | 122 months | **~14** | **Graded core** | Full walk-forward, full ablation B1→B2→M1→M2. The primary claim rests here |
 | **Crypto (BTC/USD)** | ~63 months | **~4** | **Graded secondary** | A real validated result, explicitly underpowered. **The fold count travels with every reported number.** Tests generalisation; never supports a claim alone |
@@ -176,7 +176,7 @@ Three asset classes, three *kinds of claim*. The tier is set by measured history
 
 **Definitions, so the labels are not decorative.** A *graded* tier makes a **performance** claim backed by walk-forward validation. A *validated execution layer* makes a **capability and feasibility** claim — quantitatively and out-of-sample — about whether the system's decisions could actually be executed. The dividing line is the kind of claim, not the quality of the work.
 
-**Why options cannot be graded.** One fold at 36/6/6 requires 48 months. Options history begins **2024-01-18** — measured 2026-09-01, and the evidence is the *shape*: eighteen contracts across six different expiries all clip their first bar into a two-day window, including a June expiry that had been trading for months by January. Eighteen contracts cannot coincidentally begin trading at once; it is a hard data floor of the same class as the 2016-06-10 SIP floor. 31 months cannot become 48.
+**Why options cannot be graded.** One fold at 30/6/6 requires 42 months. Options history begins **2024-01-18** — measured 2026-09-01, and the evidence is the *shape*: eighteen contracts across six different expiries all clip their first bar into a two-day window, including a June expiry that had been trading for months by January. Eighteen contracts cannot coincidentally begin trading at once; it is a hard data floor of the same class as the 2016-06-10 SIP floor. 31 months cannot become 42.
 
 **Two further reasons, beyond the arithmetic.** Options trains no model (§5.2), so there is nothing to validate on it. And 2024-01 → 2026-09 is close to a single market regime — a regime classifier trained or tested only there would have almost no regime variety, defeating the purpose of M1. Short history is not just fewer folds; it is fewer *regimes*.
 
@@ -248,7 +248,7 @@ The Accountability slide requires *"plan for failures: rollback plan, kill switc
 
 Every RunConfig, results table and Model Card records its feed **and its asset class**.
 
-**Consequences.** `data.start` is now **asset-class-specific**: `2016-06-10` for equities, `2024-01-18` for options. 36/6/6 walk-forward gives ~14 equity folds, ~4 crypto folds, 0 options folds (§7A). The feed mismatch remains a first-class constraint (§5.2).
+**Consequences.** `data.start` is now **asset-class-specific**: `2016-06-10` for equities, `2024-01-18` for options. 30/6/6 walk-forward gives ~14 equity folds, ~4 crypto folds, 0 options folds (§7A). The feed mismatch remains a first-class constraint (§5.2).
 
 **RTH filtering is mandatory** — 192 SIP bars/day means ~60% fall outside 09:30–16:00 ET. **IEX returns 74–87 bars/day against a 78-bar regular-session maximum, and options bars show the same pattern**, so the filter is load-bearing on all three feeds, not cosmetic.
 

@@ -1,0 +1,40 @@
+# Options execution layer — a capability claim, not a performance claim.
+#
+# There is deliberately no walk_forward block. Options history begins
+# 2024-01-18, about 31 months, and one fold at 30/6/6 consumes 42. Zero
+# complete folds is the honest answer, and the config layer rejects any
+# attempt to write one in. What this track validates instead is whether the
+# system's decisions could actually have been executed: fill-feasibility rates
+# with confidence intervals, and a held-out test of the selection rule.
+run_id: run_example_options
+mode: backtest
+
+data:
+  symbol: SPY
+  asset_class: option
+  provider: alpaca
+  timeframe: 5Min
+  session: rth_only         # options carry extended-hours bars too
+  start: 2024-01-18         # verified floor, 18 contracts across 6 expiries
+  end: 2026-08-31
+  dataset_hash: null
+
+risk:
+  max_drawdown: 0.20
+  daily_loss_limit: 500.0
+  max_position: 2000.0
+  sizing: vol_adjusted_v1
+
+execution:
+  # Required for options: an absent bar is an interval in which the contract
+  # did not trade, never a forward-filled price.
+  fill_model: sparse_bar
+  slippage_bps: 5.0
+
+option_selection:
+  min_dte: 7
+  max_dte: 45
+  moneyness_band: 0.02
+  min_bars_in_lifetime: 200
+
+seed: 42

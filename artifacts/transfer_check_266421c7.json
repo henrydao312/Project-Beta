@@ -1,0 +1,134 @@
+{
+  "experiment": "sip_iex_feed_transfer",
+  "spec": "Outline \u00a75.2",
+  "generated_at": "2026-09-02T19:09:06-07:00",
+  "symbol": "SPY",
+  "timeframe": "5Min",
+  "session": "rth_only",
+  "window": {
+    "start": "2024-01-02",
+    "end": "2024-03-01"
+  },
+  "thresholds_precommitted": {
+    "primary_feature": "vol_tod",
+    "keep_spearman": 0.7,
+    "keep_worst_year_spearman": 0.6,
+    "drop_spearman": 0.5,
+    "fixed_on": "2026-09-02"
+  },
+  "statistics": {
+    "vol_tod": {
+      "n": 2886,
+      "pearson": 0.3937,
+      "spearman": 0.5232,
+      "ks_statistic": 0.0599,
+      "spearman_by_year": {
+        "2024": 0.5232
+      },
+      "worst_year_spearman": 0.5232,
+      "standardised_quantiles": {
+        "sip": [
+          -1.0271,
+          -0.5519,
+          -0.2231,
+          0.2723,
+          3.078
+        ],
+        "iex": [
+          -1.1273,
+          -0.6151,
+          -0.2311,
+          0.3019,
+          4.0715
+        ]
+      }
+    },
+    "vol_ratio": {
+      "n": 3237,
+      "pearson": 0.7401,
+      "spearman": 0.6562,
+      "ks_statistic": 0.0612,
+      "spearman_by_year": {
+        "2024": 0.6562
+      },
+      "worst_year_spearman": 0.6562,
+      "standardised_quantiles": {
+        "sip": [
+          -0.6963,
+          -0.4404,
+          -0.2451,
+          0.0864,
+          4.8644
+        ],
+        "iex": [
+          -0.6663,
+          -0.4286,
+          -0.2439,
+          0.0796,
+          3.5185
+        ]
+      }
+    },
+    "vol_z": {
+      "n": 3237,
+      "pearson": 0.692,
+      "spearman": 0.6189,
+      "ks_statistic": 0.0216,
+      "spearman_by_year": {
+        "2024": 0.6189
+      },
+      "worst_year_spearman": 0.6189,
+      "standardised_quantiles": {
+        "sip": [
+          -0.8186,
+          -0.4318,
+          -0.2339,
+          0.0711,
+          5.0174
+        ],
+        "iex": [
+          -0.7526,
+          -0.4012,
+          -0.2202,
+          0.0884,
+          3.7361
+        ]
+      }
+    },
+    "trades_ratio": {
+      "n": 3237,
+      "pearson": 0.7558,
+      "spearman": 0.6397,
+      "ks_statistic": 0.0358,
+      "spearman_by_year": {
+        "2024": 0.6397
+      },
+      "worst_year_spearman": 0.6397,
+      "standardised_quantiles": {
+        "sip": [
+          -0.8997,
+          -0.5399,
+          -0.2853,
+          0.1443,
+          4.7405
+        ],
+        "iex": [
+          -0.997,
+          -0.513,
+          -0.232,
+          0.1851,
+          4.8377
+        ]
+      }
+    },
+    "_alignment": {
+      "sip_bars": 3276,
+      "iex_bars": 3276,
+      "aligned_bars": 3276,
+      "iex_coverage_of_sip": 1.0
+    }
+  },
+  "verdict": "PARTIAL",
+  "features_retained": [],
+  "rationale": "vol_tod rho=0.5232 sits between 0.5 and 0.7. Keep only features clearing 0.7; if that list is empty, treat this as DROP. Record the ambiguity rather than resolving it by taste."
+}
