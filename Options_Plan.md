@@ -7,6 +7,17 @@ cheapest route that does not damage the graded core?
 Companion documents: `Project_Outline.md` §5.8, §7A, §7B · `Upgrade_Path.md` ·
 `scripts/analysis/fold_power.py` (the arithmetic behind every number here).
 
+> **The three tiers in §2 are not alternatives to Alpaca.** Alpaca is the
+> **broker**, not merely a data feed: it is where paper orders are placed and
+> where the account lives. Cboe publishes index values and sells no execution.
+> The volatility ETFs in Tier 2 are fetched *from Alpaca*. Tier 3 *is* Alpaca's
+> own options bars. Replacing Alpaca would mean replacing the execution venue,
+> which is a different and much larger decision than adding a data source, and
+> nothing in §2 requires it.
+>
+> **Part II below is the concrete build plan for an options-focused bot**, added
+> 2026-09-03 at Henry's request. It runs on Alpaca throughout.
+
 ---
 
 ## 0. The constraint that governs everything
@@ -197,3 +208,146 @@ Phase 2 regardless. Buying data is declined at any point in the course.
 [Cboe put/call ratio archive](https://www.cboe.com/data/putcallratio.aspx) ·
 [ORATS 1-minute data](https://orats.com/one-minute-data) ·
 [Best Options Data APIs 2026](https://flashalpha.com/articles/best-options-data-apis-2026)
+
+
+---
+
+# Part II — Concrete build: an options-focused trading bot
+
+Added 2026-09-03. Part I answers "how do options enter the models". This part
+answers "what if options is the instrument the bot actually trades". The two are
+compatible: Part I feeds the brain, Part II changes the hands.
+
+## 9. The design decision that makes this feasible
+
+**The signal comes from the underlying; the option is the execution
+instrument.** SPY 5-minute bars drive the features, the regime classifier and
+the signal-quality model exactly as they do today. Only after a trade is
+approved does the system choose a contract.
+
+This is what lets an options bot exist on 31 months of options history. Nothing
+is trained on options bars, so the 42-month fold requirement never applies to
+them. Options history is needed only to answer *was this contract tradeable*,
+and 31 months of 5-minute bars is ample for that.
+
+**The alternative — training models on options bars — remains rejected.** It
+would truncate the training window to 31 months and to roughly one market
+regime, destroying the graded core to gain a label. See §3.
+
+## 10. What changes, and what does not
+
+| Component | Change |
+|---|---|
+| Data pipeline, SPY features, regime classifier, signal-quality model | **Unchanged** |
+| Trade Decision Engine | **Unchanged.** Still deterministic, still four outcomes |
+| Risk Engine | **Extended** — options-specific limits, §12 |
+| Instrument selection | **New** — the deterministic contract-selection rule, §11 |
+| Execution layer | **Extended** — sparse-bar fills in backtest, options orders live |
+| DecisionRecord | **Extended** — contract symbol, strike, expiry, DTE, moneyness, premium, selection reason codes |
+| Decision log, explanations, dashboard, replay | Unchanged in structure; they render the new fields |
+
+## 11. Contract selection — deterministic, documented, testable
+
+```
+select(signal_direction, spot, t) -> contract | NO_CONTRACT(reason)
+  1. universe  = universe_as_of(t)                    # point-in-time, §14
+  2. filter    = right matches direction
+               & DTE in [min_dte, max_dte]
+               & |strike/spot - 1| <= moneyness_band
+               & passes the liquidity screen fitted on the fit window
+  3. rank      = closest to target moneyness, then highest measured bar count
+  4. return    = rank[0], or NO_CONTRACT with a reason code
+```
+
+Every parameter lives in `RunConfig.option_selection`, already built. No model,
+no scoring, no discretion: the same inputs must produce the same contract, and a
+test asserts it.
+
+## 12. Options risk controls — genuinely new, not inherited
+
+Equity risk rules do not transfer. An option can lose 100% of its premium while
+the underlying moves 1%, and it decays whether or not anything happens.
+
+| Control | Rule | Why |
+|---|---|---|
+| **Sizing** | Max premium per trade as a fraction of equity. **Size by premium at risk, not notional** | Notional sizing on options silently takes 10x the intended exposure |
+| **Daily theta budget** | Cap total premium outlay per session | Bounds the cost of a day the strategy is simply wrong |
+| **Long only in v1** | The system may **never construct a short-option order** | Removes assignment risk, margin calls and undefined loss in one rule. Max loss becomes the premium, which is what makes the risk engine's guarantees true |
+| **No opens near expiry** | No new position with DTE below the floor | Alpaca stops permitting opens as expiry approaches; encoding it prevents rejected orders that read as system faults |
+| **Expiry-day flatten** | Close all positions by 15:30 ET on expiry day | Alpaca begins continuously evaluating open positions at 15:30 ET on expiration. Anything still open is out of the system's hands |
+| **Max concurrent contracts** | Hard cap | Bounds correlated exposure across strikes on one underlying |
+
+Each gets a test that asserts the order is refused, in the style of the existing
+halt-control tests.
+
+## 13. Execution
+
+**Backtest.** `fill_model: sparse_bar`, already enforced by config validation.
+An absent bar is an interval in which the contract did not trade, never a
+forward-filled price. Costs are bar-derived proxies, because Alpaca serves no
+historical options quotes, and that limitation is reported rather than hidden.
+
+**Live paper.** Alpaca supports options **Levels 0 to 3, including in paper**;
+this bot needs only **Level 2** (buy calls, buy puts). Constraints that shape
+the code: **market and limit orders only, day time-in-force only, no extended
+hours, no fractional contracts.** Limit orders priced from the current quote
+with a slippage cap, never market orders, since a wide options spread makes a
+market order an unpriced commitment.
+
+**The gap between backtest fills and paper fills is itself a deliverable**, not
+an embarrassment: it is the honest measurement of how good the bar-derived cost
+proxy was.
+
+## 14. The bug this project must not ship
+
+**Point-in-time universe correctness.** Selecting a contract *because it turns
+out to have bars* uses knowledge that it traded. It is look-ahead bias in its
+purest form, it inflates fill-feasibility toward 100%, and it is the first thing
+a methodology reviewer probes. `universe_as_of(t)` is already in the Alpaca
+adapter and already tested; every selection must go through it.
+
+## 15. What this bot can and cannot claim
+
+**Can:** fill-feasibility rate with Wilson intervals by moneyness bucket and
+regime; execution-cost characterisation; a held-out test of the selection rule
+(fit ~19 months, validate ~6, test ~6, opened once); and a **live paper-forward
+record** from M3 through the final demo, logged trade by trade with grounded
+explanations.
+
+**Cannot:** a walk-forward Sharpe. Zero folds is zero folds, and the paper-forward
+record is a few weeks of one regime. Report it as a track of N trades with no
+statistical claim attached, exactly as §7A requires.
+
+**The graded ablation stays on equities.** That is not a demotion of the options
+work; it is what keeps the options work honest.
+
+## 16. Build schedule
+
+| Week | Deliverable |
+|---|---|
+| **7** | Contract discovery, `universe_as_of`, liquidity measured by moneyness bucket on the fit window (2024-01-18 to 2025-08-31) |
+| **8** | Selection rule, sparse-bar fill model, options risk controls, one test per control |
+| **9** | Options path live on the paper account alongside equities, inside the same halt control |
+| **10** | Fill-feasibility study on the held-out window, execution-cost tables, selection-rule test opened once |
+| **11-12** | Results, Model and System Cards, replay renders options decisions, demo built around the options path |
+
+**Honest schedule risk:** Weeks 7 to 10 are already the most loaded in the plan.
+This is roughly two weeks of work placed into four weeks that hold the M3 alpha,
+the cards, the crypto run and the red-team pass. If it slips, the equity core
+still ships and is still a complete capstone. That is the point of the tier
+structure, and it is what makes taking this on defensible rather than reckless.
+
+## 17. Tests that must exist before any options result is reported
+
+- an absent options bar produces no fill, ever
+- `universe_as_of(t)` excludes contracts listed after `t`
+- the selection rule is deterministic: same inputs, same contract, byte-identical
+- the risk engine refuses a trade whose premium exceeds the cap
+- **no short-option order can be constructed** in v1
+- the expiry-day flatten fires at 15:30 ET
+- no options result row carries a Sharpe or drawdown field
+
+---
+
+**Additional source:** [Alpaca options trading overview](https://docs.alpaca.markets/us/docs/options-trading-overview) ·
+[Multi-leg options in paper](https://docs.alpaca.markets/changelog/multi-leg-level-3-options-trading-in-paper)
