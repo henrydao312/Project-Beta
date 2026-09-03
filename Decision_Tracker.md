@@ -32,19 +32,86 @@ Live tracking doc for every open/undecided item across `Project_Outline.md`, `PR
 
 **Why "validated execution layer" and not "demonstration".** Options can support a real statistical result today: fill-feasibility rates with confidence intervals, and a held-out test of the contract-selection rule (fit on ~25 months, test on ~6). That is out-of-sample validation of the selection rule — it simply is not a walk-forward performance claim.
 
-**Rejected: swapping options to graded secondary and crypto to demonstration.** Not a judgment call — arithmetic. A graded tier requires walk-forward folds; options has zero at 36/6/6, and 31 months cannot become 48. Crypto's 4 folds are free evidence that demoting would discard. *Prominence* is a separate axis from grading tier and remains available: options can take most of the engineering and headline the Week 12 demo without a tier change.
+**Rejected: swapping options to graded secondary and crypto to demonstration.** Not a judgment call — arithmetic. A graded tier requires walk-forward folds; options has zero at 30/6/6, and 31 months cannot become 42. Crypto's 4 folds are free evidence that demoting would discard. *Prominence* is a separate axis from grading tier and remains available: options can take most of the engineering and headline the Week 12 demo without a tier change.
 
 ## 🔴 Open and blocking
 
 | Item | Status | Notes |
 |---|---|---|
-| **Feed-transfer validation experiment** | 🔴 **Blocking PRD §5.5 — Week 1–2. Now the ONLY open data-side risk** | Backtests train on SIP volume; live runs on IEX at ~3% of the magnitude. Scale-free features *should* transfer — that's an assumption, so test it: compute the volume features from both feeds over the overlapping 2021–2026 period, correlate bar-by-bar. **Pre-committed:** strong agreement → keep and publish the correlation; weak → **drop volume features entirely** and record that IEX proved unrepresentative. Must conclude before Week 7 |
+| **Walk-forward fold arithmetic: is there a validation window?** | 🔴 **Decide before the harness (Wk 3)** | The docs say "36/6/6" and "one fold requires 48 months", which implies train/validation/test. `WalkForwardConfig` had `train/test/step` and no validation window, so one fold cost 42 months. The two readings give different fold counts: **48-month folds → 13 equity / 3 crypto; 42-month folds → 14 equity / 4 crypto.** Options is 0 either way, so the tier structure is unaffected. `config.py` now implements the 48-month reading, because the signal-quality acceptance threshold has to be chosen somewhere and choosing it on the test window is leakage. **Three options:** (a) keep 48, update "~14"/"~4" to 13/3 everywhere; (b) drop the validation window and document how thresholds avoid test contamination; (c) carve the validation window out of the 36 (30 train / 6 val / 6 test), keeping 14 folds *and* a clean threshold split. **(c) is the answer, and it is now measured, not argued.** `scripts/analysis/fold_power.py` computes the power of each scheme: total out-of-sample coverage is capped by total history, not by fold length, so shortening the fold from 48 to 27 months moves the minimum detectable Sharpe difference only from 0.35 to 0.31 while halving the training window and its regime variety. **27 months buys options exactly 1 fold**, with a minimum detectable difference of **1.27 Sharpe** over a 6-month test window inside a single regime: a label upgrade with no evidence behind it. 30/6/6 step 6 gives 14 equity folds, 4 crypto, 0 options, keeps every published figure intact and adds the validation window at no cost. |
+| **Feed-transfer validation experiment** | ✅ **RUN 2026-09-02. Verdict: PARTIAL, and the pre-committed rule resolves PARTIAL-with-an-empty-keep-list to DROP. Awaiting Henry's decision to honour it.** | Backtests train on SIP volume; live runs on IEX at ~3% of the magnitude. Scale-free features *should* transfer — that's an assumption, so test it: compute the volume features from both feeds over the overlapping 2021–2026 period, correlate bar-by-bar. **Pre-committed:** strong agreement → keep and publish the correlation; weak → **drop volume features entirely** and record that IEX proved unrepresentative. Must conclude before Week 7 |
 | **History rewrite before the repo goes public** | 🔴 **Before Week 12** | See the M1 table |
 | **Documentation pass** | ✅ **DONE 2026-09-01** | Outline Rev 11, PRD v3.0 |
 | ~~Crypto track role~~ | ✅ **CLOSED 2026-09-01** | Graded secondary |
 | ~~Options track shape~~ | ✅ **CLOSED 2026-09-01** | Validated execution layer |
 | ~~IEX real-time latency (Q2/Q2b)~~ | ✅ **CLOSED 2026-09-01** | Real-time; streaming entitled |
 | ~~Week 10 red-team target~~ | ✅ **Never actually open** | `Instruction.md` already specifies "prompt injection via news headlines **or the explanation service if Plan A is NO-GO**". News is NO-GO → **the explanation service** |
+
+## ✅ Feed-transfer experiment — RESULT (2026-09-02)
+
+Run over the full 2021-06-10 to 2026-08-30 overlap: 102,243 SIP RTH bars,
+101,780 IEX RTH bars, 101,390 aligned observations on the primary feature.
+Artifact: `artifacts/transfer_check_d8d4297b.json`.
+
+| Feature | Pearson | Spearman | Worst year | KS |
+|---|---|---|---|---|
+| **vol_tod** (primary) | 0.557 | **0.572** | 0.510 | 0.069 |
+| vol_ratio | 0.766 | 0.674 | 0.624 | 0.067 |
+| vol_z | 0.785 | 0.664 | 0.608 | **0.016** |
+| trades_ratio | 0.736 | 0.664 | 0.622 | 0.046 |
+
+**Pre-committed thresholds (fixed 2026-09-02, before the run): keep at
+Spearman ≥ 0.70 overall and ≥ 0.60 every year; drop below 0.50.**
+No feature clears 0.70. The primary sits at 0.572, above the drop floor but
+below the keep bar, and the keep list is empty — which the rule as written
+resolves to **DROP**.
+
+**What the numbers say, beyond the verdict.**
+
+1. **Distributions transfer; individual bars do not.** KS statistics of
+   0.016–0.069 mean a model trained on SIP would not meet out-of-distribution
+   inputs on IEX. It would meet a **noisy** version of the same input. That is
+   errors-in-variables, not distribution shift. At ρ ≈ 0.65 the reliability
+   ratio is ρ² ≈ 0.42, so roughly 58% of the feature's variance at inference
+   is noise, and whatever edge it carries is attenuated toward zero.
+2. **The time-of-day baseline was the wrong choice and the data says so.**
+   `vol_tod` was made primary on the reasoning that intraday volume is
+   U-shaped. It is the *worst* transferring feature. Its baseline is a
+   per-slot median over 20 sessions, and on a feed carrying ~3% of volume a
+   single 5-minute slot is thin, so the baseline itself is noisy. The
+   session-wide rolling median pools 78 bars and transfers better. **General
+   lesson: the more data a scale-free baseline pools, the better it transfers.**
+3. **IEX RTH coverage is far better than assumed.** 99.6% of SIP RTH bars have
+   an IEX counterpart across five years, against an earlier reading of 74–87
+   bars/day that suggested frequent no-trade intervals. The no-forward-fill
+   rule stays (it is still correct for options), but the Data Card should
+   record 99.6% rather than implying a gappy feed.
+4. **Stable across years.** Worst-year Spearman of 0.51–0.62 with no collapse,
+   so this is a structural property of the feeds and not a regime artifact.
+5. **The 2-month sanity run agreed** (vol_tod 0.523), so the full-run figure is
+   not a fluke of one window.
+
+**Consequence beyond M1/M2, which needs a decision.** If volume features are
+dropped, the same logic applies to any **volume-dependent rule inside B2**. A
+rule such as "volume above 1.5x the trailing median" has the identical
+train/live mismatch. Either volume leaves the strategy rules too, or the
+strategy's live behaviour differs in construction from its backtest.
+
+**Three responses, only two of which are available.**
+
+- **(A) Honour the pre-commitment.** Drop volume-derived features from the
+  models and the strategy rules. Record the correlation table in the Data Card
+  and every Model Card. The risk-register entry closes by removal, and §18's
+  negative-result framing covers it. Clean, defensible, and cheap.
+- **(B) Pre-specify a *new* experiment** and report both results. Two candidate
+  questions, each needing its own threshold fixed before it is run:
+  conditional agreement in the top decile of volume, where a breakout filter
+  actually fires; and a longer time-of-day lookback (60 sessions rather than
+  20) to see whether a better-estimated baseline transfers. Legitimate only if
+  the DROP verdict above is reported with equal prominence whatever B finds.
+- **(C) Move the threshold.** **Not available.** It is the thing the
+  pre-commitment exists to forbid, and doing it once would devalue every other
+  pre-commitment in the project.
 
 ## ▶️ Where the build starts
 
@@ -101,13 +168,13 @@ Live tracking doc for every open/undecided item across `Project_Outline.md`, `PR
 
 **Q6b — but there are only 31 months of it.** `probe_options_start.py` enumerated real contracts via `status=inactive` across the six 2024 monthlies with an unbounded lookback. **All eighteen contracts across six different expiries clipped their first bar into 2024-01-18/19** — including a June expiry trading for months by January. The evidence is the *shape*, not the minimum: eighteen contracts cannot coincidentally begin trading in the same two days. **`data.start` for options = 2024-01-18**, a hard data floor of the same class as the 2016-06-10 SIP floor.
 
-| Asset class | History | Folds at 36/6/6 |
+| Asset class | History | Folds at 30/6/6 |
 |---|---|---|
 | Equities | 122 months | ~14 |
 | Crypto | ~63 months | ~4 |
 | **Options** | **31 months** | **0 — not one complete fold** |
 
-**Why this does not remove options from scope.** The signal-quality model scores the *underlying*; contract selection is deterministic and downstream, so options adds no model. Nothing in the ablation is trained on options bars. Options never needed 48 months to train anything — it needs history to validate a deterministic execution mapping, and 31 months of 5-minute bars is ample.
+**Why this does not remove options from scope.** The signal-quality model scores the *underlying*; contract selection is deterministic and downstream, so options adds no model. Nothing in the ablation is trained on options bars. Options never needed 42 months to train anything — it needs history to validate a deterministic execution mapping, and 31 months of 5-minute bars is ample.
 
 **Supporting argument against a shortened scheme:** the 31 months run 2024-01 → 2026-09, close to a single market regime. A regime classifier trained or tested only there would have almost no regime variety, defeating the purpose of M1. Short history is not just fewer folds; it is fewer *regimes*.
 
@@ -177,7 +244,7 @@ The Alpaca key pair was **regenerated** (the original secret was unrecoverable �
 |---|---|
 | Data source and tier | ✅ Alpaca Basic free, dual-feed. **No paid subscription — confirmed by measurement** |
 | `data.start` | ✅ **2016-06-10** (equities) · **2024-01-18** (options). Asset-class-specific |
-| Walk-forward folds | ✅ 36/6/6 → **~14 folds** equities · ~4 crypto · 0 options |
+| Walk-forward folds | ✅ **30/6/6 step 6 (42 months/fold), decided 2026-09-02** → **14 folds** equities · 4 crypto · 0 options |
 | **M3 live-loop data tier** | ✅ **Free tier suffices** |
 | Volume features | ✅ Scale-free only, subject to the transfer experiment |
 | Regular vs extended hours | ✅ Regular hours only, filtered at ingestion — necessary on IEX **and** options |

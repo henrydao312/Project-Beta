@@ -12,7 +12,7 @@
 
 | Requirement to grade a track | Equities | Options today |
 |---|---|---|
-| Walk-forward folds at 36/6/6 (48 months each) | 122 months → **~14 folds** | 31 months → **0 folds** |
+| Walk-forward folds at 30/6/6 (42 months each) | 122 months → **~14 folds** | 31 months → **0 folds** |
 | A model trained on that asset class | Regime + signal-quality, SIP-trained | **None** — models score the underlying; contract selection is deterministic |
 | Features native to the asset class | Price/volume, available | **IV, skew, term structure, open interest — not in OHLCV bars** |
 | Fill realism | Deep liquidity, near-complete bars | Sparse (5–1,458 bars/contract), **no quote history** |
@@ -47,7 +47,7 @@ Second implementation on the roadmap: a Massive (Polygon) adapter in Phase 2.
 |---|---|---|---|
 | `data_start` | 2016-06-10 | ≥2021-06-10 | 2024-01-18 |
 | `session_calendar` | RTH 09:30–16:00 ET | 24/7, no filter | 09:30–16:15 ET |
-| `fold_scheme` | 36/6/6, step 6 | 36/6/6, step 6 | *n/a — no folds* |
+| `fold_scheme` | 30/6/6, step 6 | 30/6/6, step 6 | *n/a — no folds* |
 | `n_folds` | ~14 | ~4 | 0 |
 | `feature_set` | price/volume | price/volume | *(Phase 2: + IV/skew)* |
 
@@ -125,7 +125,7 @@ Quote-based fill model; live paper options; additional underlyings via `universe
 
 Massive (formerly Polygon) options plans:
 
-| Plan | Price | History | Folds at 36/6/6 |
+| Plan | Price | History | Folds at 30/6/6 |
 |---|---|---|---|
 | Basic | $0 | 2 years | 0 |
 | Starter | $29/mo | 2 years | 0 |

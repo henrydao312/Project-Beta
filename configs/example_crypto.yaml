@@ -1,0 +1,38 @@
+# Crypto secondary track — a real validated result, explicitly underpowered.
+#
+# ~63 months of BTC/USD 5-minute history gives ~4 folds against the equity
+# core's ~13. That number travels with every figure this config produces; it
+# is the difference between a generalisation check and a claim.
+run_id: run_example_crypto
+mode: backtest
+
+data:
+  symbol: BTC/USD
+  asset_class: crypto
+  provider: alpaca
+  timeframe: 5Min
+  # No feed: the sip/iex distinction is an equities concept and Alpaca
+  # versions its data APIs per asset class.
+  session: continuous       # BTC/USD trades 24/7; an RTH filter would invent a session
+  start: 2021-06-10
+  end: 2026-08-31
+  dataset_hash: null
+
+risk:
+  max_drawdown: 0.20
+  daily_loss_limit: 500.0
+  max_position: 5000.0
+  sizing: vol_adjusted_v1
+  regime_abstain: []
+
+execution:
+  fill_model: bar
+  slippage_bps: 2.0
+
+walk_forward:
+  train_months: 30
+  validation_months: 6
+  test_months: 6
+  step_months: 6
+
+seed: 42

@@ -1,14 +1,16 @@
-# Example backtest configuration.
+# Example backtest configuration — the graded equity core.
 #
 # Every published result traces to one of these files. The date range and
 # walk-forward windows below are the verified defaults: SIP 5-minute history
 # begins 2016-06-10 (confirmed by API probe; 2015 returns nothing), and
-# 36/6/6 yields ~14 folds across that span.
+# 30/6/6 over that span yields ~14 folds.
 run_id: run_example_backtest
 mode: backtest              # backtest | paper | replay
 
 data:
   symbol: SPY
+  asset_class: equity       # equity | crypto | option
+  provider: alpaca
   timeframe: 5Min
   feed: sip                 # sip for backtest, iex for paper (see config.py)
   session: rth_only         # extended-hours bars are filtered at ingestion
@@ -27,8 +29,16 @@ risk:
     auto_halt_enabled: true
   regime_abstain: []        # set from evidence after M2 calibration
 
+execution:
+  fill_model: bar           # bar | sparse_bar | quote (quote is declared, not available)
+  commission_per_share: 0.0
+  slippage_bps: 1.0
+
+# Absence is meaningful: a run with no walk_forward block makes no
+# walk-forward performance claim. See configs/example_options.yaml.
 walk_forward:
-  train_months: 36
+  train_months: 30
+  validation_months: 6      # thresholds are chosen here, never on the test window
   test_months: 6
   step_months: 6
 
