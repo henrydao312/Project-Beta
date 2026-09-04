@@ -5,7 +5,9 @@ assembled here; per the AI-usage policy (Instruction.md §Generative AI Usage
 Policy) the submitted prose is Henry's. Items needing his input are marked
 `[HENRY]`. Deliverable is a single PDF.
 
-**CIS 5980 AI Capstone · Fall 2026 · AI Engineering Track · Solo · Henry Dao**
+**CIS 5980 AI Capstone · Fall 2026 · AI Engineering Track · Henry Dao and Jacky**
+
+`[HENRY: add Jacky's surname, and confirm how faculty want a two-person M1 attributed.]`
 
 Milestone 1 has three distinct requirement sets in the course materials. They
 overlap but none subsumes the others, so all three are answered below.
@@ -124,7 +126,7 @@ since the proposal was drafted, and the change is itself evidence:
 | Scheduled job silently fails to run | Project moved outside macOS TCC-protected folders; scheduled jobs verified through the scheduler, never only by hand |
 | Invalid credentials producing a plausible failed run | Startup authentication check that aborts on non-200. A non-empty check is not a check |
 | Secondary tracks over-claimed | Tiers fixed by measured fold counts; crypto's fold count travels with every number; options makes no performance claim |
-| Solo bandwidth | Weekly journal, four logs, conditional tiers absorb slippage, named checkpoints |
+| **Team bandwidth and coordination** | Two-person group, approved 2026-09-03 with expectations unchanged by size. Onboarding costs one to two weeks and review adds latency, so **no critical-path work is assigned to the second owner**: a stall degrades scope rather than blocking the core. Interface contracts keep each stream separable; weekly journal, four logs, conditional tiers and named checkpoints as before |
 
 Full register in `Project_Outline.md` §15.
 

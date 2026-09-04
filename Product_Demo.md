@@ -4,7 +4,7 @@
 
 An AI-assisted paper-trading system that filters a transparent, rule-based strategy — and gives a plain-English, checkable reason for every trade it takes or refuses.
 
-> Henry Dao · AI Capstone (CIS 5980), Fall 2026 · Solo project
+> Henry Dao and Jacky · AI Capstone (CIS 5980), Fall 2026
 > **Paper trading only. Not investment advice. No real money at any point.**
 
 *Companion to `PROJECT_BETA_Product_Demo.pptx` — same six beats, in speaking order. Present from either.*

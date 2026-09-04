@@ -299,7 +299,7 @@ The Alpaca key pair was **regenerated** (the original secret was unrecoverable �
 |---|---|---|
 | Coding-agent use on system code | ✅ 2026-08-24 | Three consistent sources |
 | Milestone timeline alignment | ✅ 2026-08-25 | Alpha = Wk 9; docs/video = Wk 12 |
-| Solo vs. group | ✅ 2026-08-28 | Solo |
+| Solo vs. group | ✅ **REVERSED 2026-09-03** | Ran solo through Week 2 after a classmate backed out on 2026-08-28. **Faculty approved a two-person group on 2026-09-03 (Henry + Jacky), confirming expectations do not scale with team size.** The second contributor is slack, not a raised bar: it buys depth and an owner for the dashboard, which previously had none. Ownership split in `Jacky_Contribution_Plan.md`; work breakdown in Outline §13 |
 | Primary strategy | ✅ 2026-08-26 | Momentum breakout |
 | Multi-strategy architecture | ✅ 2026-08-26 | One primary with full rigor; secondaries backtest-only |
 | Optional Focus Area declaration | ✅ 2026-08-30 | Evaluation & Responsible AI (primary) + Model & System (secondary) |

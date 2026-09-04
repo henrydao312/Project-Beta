@@ -12,7 +12,7 @@
 
 ## 1. Product Vision
 
-PROJECT BETA is an AI-assisted paper-trading research platform built as a solo AI Capstone project on the **AI Engineering track**. AI augments — never replaces — a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible — **and every reported result states which asset class it came from and how many folds stand behind it.**
+PROJECT BETA is an AI-assisted paper-trading research platform built as a two-person AI Capstone project on the **AI Engineering track**. AI augments — never replaces — a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible — **and every reported result states which asset class it came from and how many folds stand behind it.**
 
 ## 2. Goals and Non-Goals
 
@@ -380,7 +380,7 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 
 ## 9. Open Questions
 
-**Resolved:** primary strategy · bar timeframe · multi-strategy architecture · AI usage policy · solo · redistribution prohibited · Trading API vs Broker API · LLM output rights and provider policy · **data source, tier, feeds, `data.start` per asset class, fold design, session filtering, scale-free volume features** · **AI role, interaction style, platform, pattern tier, task inventory** · **what-if excluded on grounding grounds** · **hallucination enforcement mechanism** · **IEX real-time latency and streaming entitlement (2026-09-01)** · **news gate — dropped** · **asset-class tiers** · **vendor switch for options — rejected on fold arithmetic** · **Week 10 red-team target — the explanation service** · **TCC / scheduled-execution constraint**.
+**Resolved:** primary strategy · bar timeframe · multi-strategy architecture · AI usage policy · **team composition (two-person group approved 2026-09-03; expectations do not scale with size)** · redistribution prohibited · Trading API vs Broker API · LLM output rights and provider policy · **data source, tier, feeds, `data.start` per asset class, fold design, session filtering, scale-free volume features** · **AI role, interaction style, platform, pattern tier, task inventory** · **what-if excluded on grounding grounds** · **hallucination enforcement mechanism** · **IEX real-time latency and streaming entitlement (2026-09-01)** · **news gate — dropped** · **asset-class tiers** · **vendor switch for options — rejected on fold arithmetic** · **Week 10 red-team target — the explanation service** · **TCC / scheduled-execution constraint**.
 
 **Still open:**
 - **The §5.2 transfer-validation result** — Week 1–2, blocking §5.5. **The only open data-side risk.**

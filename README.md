@@ -4,7 +4,7 @@
 
 > ⚠️ **Paper trading only. Not investment advice.** No real money is at risk at any point. There is no live-money code path in this repository, and a test enforces its absence.
 
-AI Capstone (CIS 5980), Penn Engineering — Fall 2026. Solo project.
+AI Capstone (CIS 5980), Penn Engineering — Fall 2026. Two-person team: Henry Dao and Jacky.
 
 ---
 
