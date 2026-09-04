@@ -2,7 +2,7 @@
 
 THE PROBLEM. The graded backtest trains on SIP consolidated bars. The live
 paper loop reads IEX, which carries a median 3.16% of consolidated volume
-(2.79-3.78% across six sessions, measured 2026-08-30 — structural, not noise).
+(2.79-3.78% across six sessions, measured 2026-08-30 - structural, not noise).
 A feature built on absolute volume would therefore train on values roughly
 thirty times larger than it meets at inference and fail silently on deployment,
 producing a system that backtests well and trades badly for a reason nothing in
@@ -48,8 +48,8 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from project_beta.data.alpaca import AlpacaProvider  # noqa: E402
-from project_beta.data.provider import ProviderAuthError  # noqa: E402
+from project_beta.data.alpaca import AlpacaProvider # noqa: E402
+from project_beta.data.provider import ProviderAuthError # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = REPO_ROOT / "data" / "raw" / "transfer_check"
@@ -67,7 +67,7 @@ DEFAULT_END = date.today() - timedelta(days=3)
 # Regular session, US Eastern. Applied before any feature is computed: 60% of
 # SIP bars fall outside it and behave nothing like the regular session.
 RTH_START = "09:30"
-RTH_END = "15:55"  # last 5-minute bar opens at 15:55 and closes the session
+RTH_END = "15:55" # last 5-minute bar opens at 15:55 and closes the session
 
 SESSION_BARS = 78
 TOD_LOOKBACK_SESSIONS = 20
@@ -80,8 +80,8 @@ TOD_LOOKBACK_SESSIONS = 20
 # intraday volume has a pronounced U-shape, and any scale-free feature that
 # ignores time of day mostly measures the clock rather than the market.
 PRIMARY_FEATURE = "vol_tod"
-KEEP_RHO = 0.70          # Spearman over the full overlap, AND
-KEEP_RHO_WORST_YEAR = 0.60  # in every calendar year, so one good year cannot carry it
+KEEP_RHO = 0.70 # Spearman over the full overlap, AND
+KEEP_RHO_WORST_YEAR = 0.60 # in every calendar year, so one good year cannot carry it
 DROP_RHO = 0.50
 
 
@@ -330,10 +330,10 @@ def main() -> int:
     print(f"window {args.start} to {args.end}")
     frames = {}
     for feed in ("sip", "iex"):
-        print(f"  fetching {feed} ...", flush=True)
+        print(f" fetching {feed} ...", flush=True)
         raw = load_feed(provider, feed, args.start, args.end)
         rth = to_rth(raw)
-        print(f"    {len(raw):,} bars, {len(rth):,} after the RTH filter")
+        print(f" {len(raw):,} bars, {len(rth):,} after the RTH filter")
         frames[feed] = build_features(rth)
 
     stats = compare(frames["sip"], frames["iex"])
@@ -373,14 +373,14 @@ def main() -> int:
         if not s or "spearman" not in s:
             continue
         marker = " <- primary" if feat == PRIMARY_FEATURE else ""
-        print(f"  {feat:<14} n={s['n']:>7,}  pearson={s['pearson']:>6}  "
-              f"spearman={s['spearman']:>6}  worst yr={s['worst_year_spearman']}"
-              f"  KS={s['ks_statistic']}{marker}")
+        print(f" {feat:<14} n={s['n']:>7,} pearson={s['pearson']:>6} "
+              f"spearman={s['spearman']:>6} worst yr={s['worst_year_spearman']}"
+              f" KS={s['ks_statistic']}{marker}")
     a = stats["_alignment"]
-    print(f"\n  IEX bars present where SIP has one: {a['iex_coverage_of_sip']:.1%}")
-    print(f"\n  VERDICT: {call}")
-    print(f"  {rationale}")
-    print(f"\n  artifact: {path.relative_to(REPO_ROOT)}")
+    print(f"\n IEX bars present where SIP has one: {a['iex_coverage_of_sip']:.1%}")
+    print(f"\n VERDICT: {call}")
+    print(f" {rationale}")
+    print(f"\n artifact: {path.relative_to(REPO_ROOT)}")
     return 0
 
 

@@ -1,7 +1,7 @@
 # Contributing to PROJECT BETA
 
 Thanks for your interest. This is an academic capstone project, so the primary
-audience is reviewers and anyone reproducing the results — but the setup below
+audience is reviewers and anyone reproducing the results - but the setup below
 works for contributors too.
 
 ## Setup
@@ -15,23 +15,23 @@ pip install -e ".[dev]"
 ## Running tests
 
 ```bash
-pytest              # full suite; should be green before any push
-ruff check .        # lint
+pytest # full suite; should be green before any push
+ruff check . # lint
 ```
 
 Tests must pass before a pull request is opened. If a test fails, fix the cause
-— **never disable or weaken a test to get a green check.** The guardrail tests
+ - **never disable or weaken a test to get a green check.** The guardrail tests
 in `tests/test_guardrails.py` enforce commitments made in the project's safety
 and licensing documents; a failure there means a promise was broken, not that
 the test is inconvenient.
 
 ## Getting data
 
-Market data is **not** in this repository and cannot be redistributed — see the
+Market data is **not** in this repository and cannot be redistributed - see the
 README's data section. You will need your own Alpaca API keys:
 
 ```bash
-cp .env.example .env    # .env is gitignored
+cp .env.example .env # .env is gitignored
 chmod 600 .env
 source .env
 ```
@@ -58,13 +58,13 @@ path in this project and there should never be one.
   an implementation detail.
 - **A weakened grounding rule.** The explanation service may reference only
   fields present in the decision log. Features that would require it to
-  speculate — counterfactuals, for instance — are out of scope by design.
+  speculate - counterfactuals, for instance - are out of scope by design.
 
 ## AI-assisted contributions
 
 AI assistance is welcome and used in this project. Please note in the pull
 request which parts were AI-assisted, and satisfy yourself that the code is
-correct before submitting it — you own what you ship regardless of what wrote
+correct before submitting it - you own what you ship regardless of what wrote
 it.
 
 ## Questions

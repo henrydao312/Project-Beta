@@ -1,4 +1,4 @@
-# Options execution layer — a capability claim, not a performance claim.
+# Options execution layer - a capability claim, not a performance claim.
 #
 # There is deliberately no walk_forward block. Options history begins
 # 2024-01-18, about 31 months, and one fold at 30/6/6 consumes 42. Zero
@@ -14,8 +14,8 @@ data:
   asset_class: option
   provider: alpaca
   timeframe: 5Min
-  session: rth_only         # options carry extended-hours bars too
-  start: 2024-01-18         # verified floor, 18 contracts across 6 expiries
+  session: rth_only # options carry extended-hours bars too
+  start: 2024-01-18 # verified floor, 18 contracts across 6 expiries
   end: 2026-08-31
   dataset_hash: null
 

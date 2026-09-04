@@ -1,10 +1,10 @@
-"""RunConfig — the single specification of a backtest, paper or replay session.
+"""RunConfig - the single specification of a backtest, paper or replay session.
 
 Every result this project publishes traces back to one of these. The validation
 below is not ceremony: each rule encodes something that was measured or decided
 during Week 1, and would otherwise live only in someone's memory.
 
-This module is architecture seam 2 (Upgrade_Path §2.2): the fold scheme, the
+This module is architecture seam 2 (Outline §7B seam 2): the fold scheme, the
 history floor, the session calendar and the fill model are all configuration
 parameterised by asset class. If those are configuration, adding a graded
 options track after the course is a YAML file plus data, not a rewrite.
@@ -77,7 +77,7 @@ class DataConfig:
     asset_class: AssetClass = "equity"
     provider: Provider = "alpaca"
     # Equities only. Alpaca versions its data APIs per asset class, and the
-    # sip/iex distinction does not exist for crypto or options — a correction
+    # sip/iex distinction does not exist for crypto or options - a correction
     # forced by a probe that queried all three under /v2 and got zeros back.
     feed: Feed | None = None
     session: Session = "rth_only"
@@ -107,21 +107,21 @@ class RiskConfig:
     sizing: str = "vol_adjusted_v1"
     halt: HaltConfig = field(default_factory=HaltConfig)
     # Regimes where the signal-quality model abstains rather than participates.
-    # This is the fairness mitigation from Outline §20.3 — configuration, not a
+    # This is the fairness mitigation from Outline §20.3 - configuration, not a
     # hard-coded behaviour, so it can be set from evidence after M2 calibration.
     regime_abstain: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class ExecutionConfig:
-    """Seam 5 (Upgrade_Path §2.5): the fill model is pluggable, not implied.
+    """Seam 5 (Outline §7B seam 5): the fill model is pluggable, not implied.
 
-    'bar'        — fill against the bar that triggered the decision.
-    'sparse_bar' — same, but an absent bar is a no-trade interval and never a
+    'bar' - fill against the bar that triggered the decision.
+    'sparse_bar' - same, but an absent bar is a no-trade interval and never a
                    forward-filled price. Required for options (Outline §8) and
                    honest on IEX too, where 5-minute intervals with no trades
                    genuinely occur on a feed carrying ~3% of consolidated volume.
-    'quote'      — spread-aware fills. No vendor available to this project
+    'quote' - spread-aware fills. No vendor available to this project
                    serves historical options quotes, so this is declared and
                    unimplemented rather than silently absent.
     """
@@ -152,8 +152,8 @@ class OptionSelectionConfig:
 class WalkForwardConfig:
     """The 30/6/6 scheme: 30 months train, 6 validation, 6 test, stepped by 6.
 
-    The validation window is not decorative. Thresholds — the signal-quality
-    acceptance cutoff above all — have to be chosen somewhere, and choosing
+    The validation window is not decorative. Thresholds - the signal-quality
+    acceptance cutoff above all - have to be chosen somewhere, and choosing
     them on the test window is leakage wearing a walk-forward costume. One
     complete fold therefore consumes 42 months, which is the arithmetic behind
     the options tier in Outline §7A.
@@ -259,8 +259,8 @@ class RunConfig:
         if d.asset_class == "option" and self.walk_forward is not None:
             raise ConfigError(
                 "asset_class='option' cannot carry a walk_forward block. "
-                f"Options history begins {OPTIONS_HISTORY_FLOOR} — about 31 "
-                "months — and one fold at 30/6/6 consumes 42. That is zero "
+                f"Options history begins {OPTIONS_HISTORY_FLOOR} - about 31 "
+                "months - and one fold at 30/6/6 consumes 42. That is zero "
                 "complete folds, and 31 months cannot become 42. Options is a "
                 "validated execution layer (Outline §7A): it makes a "
                 "fill-feasibility claim with a held-out split, never a "
@@ -291,7 +291,7 @@ class RunConfig:
                 "vendor within this project's budget serves historical options "
                 "quotes, so spread and slippage are bar-derived proxies. The "
                 "value exists in the interface so the limit is visible "
-                "(Upgrade_Path seam 5), not so it can be selected."
+                "(Outline §7B seam 5), not so it can be selected."
             )
         if d.asset_class == "option" and e.fill_model != "sparse_bar":
             raise ConfigError(
@@ -299,7 +299,7 @@ class RunConfig:
                 "'sparse_bar'. Options bars are strike-dependent and sparse "
                 "(5 to 1,458 per contract lifetime observed). A missing bar is "
                 "an interval in which the contract did not trade, never a "
-                "forward-filled price — filling it invents a fill that could "
+                "forward-filled price - filling it invents a fill that could "
                 "not have happened. See Outline §8."
             )
         if e.slippage_bps < 0 or e.commission_per_share < 0:
@@ -361,7 +361,7 @@ class RunConfig:
         return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
     def provenance(self) -> dict[str, Any]:
-        """Seam 3 (Upgrade_Path §2.3): what every results row must carry.
+        """Seam 3 (Outline §7B seam 3): what every results row must carry.
 
         The comparability caveat belongs in the data, not in prose around it. A
         crypto number without its fold count beside it is a number that will
@@ -465,14 +465,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"INVALID: {exc}", file=sys.stderr)
         return 1
     p = cfg.provenance()
-    print(f"OK  {cfg.run_id}   [{p['tier']}]")
-    print(f"    mode={cfg.mode}  asset_class={p['asset_class']}  feed={p['feed']}")
-    print(f"    session={cfg.data.session}  fill_model={p['fill_model']}")
-    print(f"    range={cfg.data.start} to {cfg.data.end}  ({cfg.span_months()} months)")
-    print(f"    fold scheme={p['fold_scheme']}   folds={p['n_folds']}")
-    print(f"    config_hash={p['config_hash']}")
+    print(f"OK {cfg.run_id} [{p['tier']}]")
+    print(f" mode={cfg.mode} asset_class={p['asset_class']} feed={p['feed']}")
+    print(f" session={cfg.data.session} fill_model={p['fill_model']}")
+    print(f" range={cfg.data.start} to {cfg.data.end} ({cfg.span_months()} months)")
+    print(f" fold scheme={p['fold_scheme']} folds={p['n_folds']}")
+    print(f" config_hash={p['config_hash']}")
     if cfg.risk.regime_abstain:
-        print(f"    abstaining in regimes: {', '.join(cfg.risk.regime_abstain)}")
+        print(f" abstaining in regimes: {', '.join(cfg.risk.regime_abstain)}")
     return 0
 
 

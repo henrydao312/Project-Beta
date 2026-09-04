@@ -1,4 +1,4 @@
-"""MarketDataProvider — the vendor-agnostic data interface (seam 1).
+"""MarketDataProvider - the vendor-agnostic data interface (seam 1).
 
 This is the most consequential design decision in the data layer, and the
 reason it is written before any vendor code:

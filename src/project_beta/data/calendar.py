@@ -4,7 +4,7 @@ Why this module exists at all. The coverage rules in Outline §9 and PRD §5.1
 are stated per *session*: flag a day below ~90% coverage, exclude window-edge
 days, never assert exactly 78 bars. None of that can be computed without
 knowing what a full session is on that particular day, and "78 bars" is wrong
-on roughly nine days a year — the 13:00 ET early closes, where 42 is full.
+on roughly nine days a year - the 13:00 ET early closes, where 42 is full.
 Measuring those days against 78 would flag every one of them at 54% and bury
 the real outages in a list of false positives.
 
@@ -14,8 +14,8 @@ direction of "everything looks fine". The rules below cover 2016-06-10 (the SIP
 history floor) onward and extend forward without maintenance.
 
 **What this calendar is not.** It is not an authoritative NYSE calendar. It
-does not know about one-off closures — a state funeral, Hurricane Sandy, a
-market-wide outage — and it cannot. That is why nothing in the pipeline
+does not know about one-off closures - a state funeral, Hurricane Sandy, a
+market-wide outage - and it cannot. That is why nothing in the pipeline
 *rejects* data on this calendar's say-so. A session in the data that this
 calendar did not expect is flagged for review, not dropped; a session this
 calendar expected that the data does not have is flagged, not fabricated. The
@@ -81,14 +81,14 @@ def _observed(day: date, *, shift_saturday_back: bool = True) -> date | None:
     """Map a fixed-date holiday to the day the market actually closes.
 
     NYSE convention: a holiday on Sunday is observed the following Monday; one
-    on Saturday is observed the preceding Friday — with New Year's Day the
+    on Saturday is observed the preceding Friday - with New Year's Day the
     exception, where no Friday closing is taken. Callers pass
     ``shift_saturday_back=False`` for that case, and get None: the market
     simply trades its normal schedule around it.
     """
-    if day.weekday() == 5:  # Saturday
+    if day.weekday() == 5: # Saturday
         return day - timedelta(days=1) if shift_saturday_back else None
-    if day.weekday() == 6:  # Sunday
+    if day.weekday() == 6: # Sunday
         return day + timedelta(days=1)
     return day
 
@@ -105,10 +105,10 @@ def holidays(year: int) -> frozenset[date]:
     # rolls forward, which it cannot; but Jan 1 on Sunday closes Jan 2. Handled
     # by _observed above.
 
-    out.add(_nth_weekday(year, 1, 0, 3))              # MLK Jr Day
-    out.add(_nth_weekday(year, 2, 0, 3))              # Washington's Birthday
-    out.add(_easter(year) - timedelta(days=2))        # Good Friday
-    out.add(_last_weekday(year, 5, 0))                # Memorial Day
+    out.add(_nth_weekday(year, 1, 0, 3)) # MLK Jr Day
+    out.add(_nth_weekday(year, 2, 0, 3)) # Washington's Birthday
+    out.add(_easter(year) - timedelta(days=2)) # Good Friday
+    out.add(_last_weekday(year, 5, 0)) # Memorial Day
     if year >= JUNETEENTH_FIRST_YEAR:
         juneteenth = _observed(date(year, 6, 19))
         if juneteenth is not None:
@@ -116,8 +116,8 @@ def holidays(year: int) -> frozenset[date]:
     independence = _observed(date(year, 7, 4))
     if independence is not None:
         out.add(independence)
-    out.add(_nth_weekday(year, 9, 0, 1))              # Labor Day
-    out.add(_nth_weekday(year, 11, 3, 4))             # Thanksgiving
+    out.add(_nth_weekday(year, 9, 0, 1)) # Labor Day
+    out.add(_nth_weekday(year, 11, 3, 4)) # Thanksgiving
     christmas = _observed(date(year, 12, 25))
     if christmas is not None:
         out.add(christmas)
@@ -138,7 +138,7 @@ def early_closes(year: int) -> frozenset[date]:
     out: set[date] = set()
 
     candidates = [
-        _nth_weekday(year, 11, 3, 4) + timedelta(days=1),  # day after Thanksgiving
+        _nth_weekday(year, 11, 3, 4) + timedelta(days=1), # day after Thanksgiving
         date(year, 7, 3),
         date(year, 12, 24),
     ]
