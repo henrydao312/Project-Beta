@@ -70,3 +70,19 @@ it.
 ## Questions
 
 Open an issue.
+
+## Local enforcement
+
+Branch protection is not available on this plan for a private repository, so the
+working agreements are enforced by a git hook instead. Enable it once per clone:
+
+```
+git config core.hooksPath .githooks
+```
+
+The hook refuses a direct push to `main` and runs the test suite before any
+push. Both can be overridden with `ALLOW_MAIN_PUSH=1` and `SKIP_TESTS=1`, which
+should be rare and explainable.
+
+CI runs on every pull request. A red check does not block a merge on this plan,
+so treat it as blocking by agreement.

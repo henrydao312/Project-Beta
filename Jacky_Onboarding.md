@@ -153,7 +153,7 @@ splitting them would cost more than it returns.
 | Day | Task |
 |---|---|
 | 1 | Read the three documents in §1 |
-| 2 | `python3 -m venv .venv`, `source .venv/bin/activate`, `pip install -e ".[dev]"`, then `python -m pytest -q`. Expect 136 passing, 1 skipped |
+| 2 | `python3 -m venv .venv`, `source .venv/bin/activate`, `pip install -e ".[dev]"`, then `git config core.hooksPath .githooks` and `python -m pytest -q`. Expect 136 passing, 1 skipped. The hook blocks direct pushes to `main` and runs the suite before every push |
 | 3 | Run `python -m project_beta.config` against each file in `configs/`. Read `src/project_beta/config.py` and work out why an options config is rejected when a `walk_forward` block is added |
 | 4-5 | First pull request, something small and real in the chosen area. The goal is to exercise the review loop |
 

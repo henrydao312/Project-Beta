@@ -1,0 +1,43 @@
+#!/bin/sh
+# Local enforcement of the working agreements, since branch protection is not
+# available on this plan for a private repository.
+#
+# Enable once per clone:
+#     git config core.hooksPath .githooks
+#
+# Two rules:
+#   1. No direct push to main. Work on a branch, open a pull request.
+#   2. The test suite must pass before anything leaves the machine.
+#
+# Emergency override, which should be rare and explainable:
+#     ALLOW_MAIN_PUSH=1 SKIP_TESTS=1 git push ...
+
+PROTECTED="refs/heads/main"
+RED="$(printf '\033[31m')"; NC="$(printf '\033[0m')"
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$PROTECTED" ] && [ -z "$ALLOW_MAIN_PUSH" ]; then
+    echo "${RED}blocked:${NC} direct push to main."
+    echo "  Work on a branch and open a pull request. See CONTRIBUTING.md."
+    echo "  Override: ALLOW_MAIN_PUSH=1 git push"
+    exit 1
+  fi
+done
+
+if [ -n "$SKIP_TESTS" ]; then
+  echo "pre-push: tests skipped by request"
+  exit 0
+fi
+
+if ! python -c "import pytest" >/dev/null 2>&1; then
+  echo "pre-push: pytest not found, skipping tests."
+  echo "  Activate the venv first: source .venv/bin/activate"
+  exit 0
+fi
+
+echo "pre-push: running the test suite..."
+if ! python -m pytest -q; then
+  echo "${RED}blocked:${NC} tests failed. Fix them rather than skipping."
+  echo "  Never disable a test to make this pass."
+  exit 1
+fi
