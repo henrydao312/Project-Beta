@@ -1,7 +1,7 @@
 # AI Capstone (CIS 5980, Fall 2026) — Project Instructions & Requirements
 
 ## Purpose
-This file distills the **official Fall 2026 syllabus** (Dr. Chris Callison-Burch, Penn Engineering Online MSE-AI) plus this project's own plan. All project work in this workspace should align with these requirements. This is a **solo** capstone — a team-up with a classmate was briefly under discussion (2026-08-26) but the teammate backed out (2026-08-28); see `Decision_Tracker.md` for the closed fork and its findings.
+This file distills the **official Fall 2026 syllabus** (Dr. Chris Callison-Burch, Penn Engineering Online MSE-AI) plus this project's own plan. All project work in this workspace should align with these requirements. This is a **two-person** capstone: Henry Dao and Jacky. It ran solo through Week 2 — an earlier team-up was discussed 2026-08-26 and closed 2026-08-28 when that classmate backed out — and **faculty approved the two-person group on 2026-09-03, confirming that scope expectations do not scale with team size.** See `Decision_Tracker.md` for the history and `Jacky_Contribution_Plan.md` for the ownership split.
 
 **Track:** AI Engineering Track (not Research Track).
 **Course dates:** Monday 8/24/2026 – Sunday 12/6/2026 (14 weeks). No classes 9/7 (Labor Day) or 11/23–11/29 (Thanksgiving).
@@ -114,12 +114,12 @@ By the end of Phase 1 the repo needs all six. The deck estimates the whole check
 - [ ] `LICENSE` — MIT or Apache 2.0. Deck's guidance: *"when in doubt, use MIT"*; Apache 2.0 if explicit patent protection matters. **PROJECT BETA: MIT** (see Outline §20.1).
 - [ ] `CONTRIBUTING.md` — setup instructions, how to run tests, PR process.
 - [ ] `CODE_OF_CONDUCT.md` — Contributor Covenant via GitHub's one-click template.
-- [ ] **Issue labels configured** — start with `bug`, `enhancement`, `documentation`, `good first issue`. The deck notes labeled issues are also how discrete tasks get handed to collaborators *and agents*, which is directly useful for a solo AI-assisted build.
+- [ ] **Issue labels configured** — start with `bug`, `enhancement`, `documentation`, `good first issue`. The deck notes labeled issues are also how discrete tasks get handed to collaborators *and agents*, which is directly useful for a small AI-assisted build with a second contributor.
 - [ ] `.github/workflows/ci.yml` — a passing CI smoke test, green check on every commit.
 
 **CI guidance from the deck, worth following literally:** `on: [push, pull_request]`, `runs-on: ubuntu-latest`, `uses: actions/checkout@v4`, `run: python -m pytest`. Keep it simple, fix failing tests immediately, **do not run hour-long training or huge datasets in CI**, and never disable a test just to force the check green. For an AI project the smoke test asks the cheapest possible question — does the pipeline load, does inference run on a sample input — e.g. `assert model is not None and model.predict(sample) is not None`.
 
-**Pitfalls the deck calls out by name** (all of which apply to a solo build under time pressure): *"I'll add docs later"* → a stub README now beats a perfect one never; *"my code is too simple to test"* → even `assert model is not None` is real smoke testing; *"I don't need a license for a school project"* → the repo is public and employers will look; *"the AI wrote it, so it must be fine"* → that is vibecoding, verify before you trust; *"CI is too complicated"* → it is fifteen lines of YAML.
+**Pitfalls the deck calls out by name** (all of which apply to a small team under time pressure): *"I'll add docs later"* → a stub README now beats a perfect one never; *"my code is too simple to test"* → even `assert model is not None` is real smoke testing; *"I don't need a license for a school project"* → the repo is public and employers will look; *"the AI wrote it, so it must be fine"* → that is vibecoding, verify before you trust; *"CI is too complicated"* → it is fifteen lines of YAML.
 
 ### Optional Focus Areas — declared
 
@@ -153,7 +153,7 @@ The course materials say reviewers score the proposal against exactly three thin
 1. **A clear problem worth solving — not "build a thing with an LLM."** PROJECT BETA passes: the problem is a named user (discretionary retail trader / junior quant researcher) who wants systematic, interpretable, risk-controlled filtering of trading signals — not "add AI to trading" for its own sake. Lead the proposal with the project statement in Outline §1/§1A, not with the tech stack.
 2. **Demonstrable value — something a real user or reader would care about.** PROJECT BETA passes: success is defined as a measurable, prespecified risk-adjusted improvement (Sharpe/max drawdown) over an identical unfiltered baseline, net of costs — or a rigorously characterized negative result — plus an auditable explanation for every trade decision. Both are concrete and falsifiable, which is what "demonstrable" means here; a reviewer can check them. **Added 2026-08-30:** the deck requires a *user-impact* metric alongside the offline ones (see below), and this row is where it earns its keep — "what changes for the user" is the demonstrable-value question restated as a measurement.
 3. **Achievable scope — finishable in 14 weeks at a quality you're proud of.** This is the one genuine risk in the current plan and should be addressed head-on in the proposal, not left implicit:
-   - The **full** system (data pipeline, features, regime classifier, signal-quality model, risk engine, execution simulator, Alpaca paper trading, evaluation harness, explanation agent, failure-analysis assistant, dashboard, plus a conditional news gate) is a lot for one person in 14 weeks, especially with a working Alpaca paper-trading loop due by **Week 9** (Milestone 3) — nearly two-thirds through the semester's build time, not the full 14 weeks.
+   - The **full** system (data pipeline, features, regime classifier, signal-quality model, risk engine, execution simulator, Alpaca paper trading, evaluation harness, explanation agent, failure-analysis assistant, dashboard, plus a conditional news gate) is a lot even for two people in 14 weeks, especially with a working Alpaca paper-trading loop due by **Week 9** (Milestone 3) — nearly two-thirds through the semester's build time, not the full 14 weeks.
    - The existing **Scope Tiers table (Outline §3)** already does the right thing here — it explicitly marks the news components (M3/M4) and the secondary-strategy toggle as conditional/optional/lightweight and states "guaranteed core alone is a complete capstone." **Make this the centerpiece of how the proposal answers the scope question**, not a footnote: reviewers want to see that you already know where you'd cut if behind schedule, and PROJECT BETA already has that answer.
    - Consider naming explicit fallback checkpoints in the proposal itself (e.g., "if the regime classifier isn't calibrated by Week 6, the news gate is dropped regardless of the Week 2 feasibility verdict") so "achievable scope" reads as a decision already made, not an aspiration.
    - The deck's **Time Budget** slide is a useful sanity check to quote against: Weeks 1–2 scope + repo + groundwork (*"don't start the build yet"*), Weeks 3–5 data + eval + baselines (*"the hardest part for most students"*), Weeks 6–9 the main build (*"4 weeks goes fast"*), Weeks 10–12 polish and ship (*"resist the urge to add features"*), Weeks 13–14 write, record, present (*"reserve real time for this"*). PROJECT BETA's Outline §12 already matches this shape.
@@ -234,9 +234,16 @@ Was previously an open design question alongside the interactive query layer. No
 
 ---
 
-## Professor Policy Confirmations — added 2026-08-28
+## Professor Policy Confirmations
 
-Three additional policy questions were emailed to Dr. Callison-Burch and confirmed by his reply (2026-08-28): VPN use has no restriction; real-money trading is allowed though he recommends sticking with simulated funds; implementation language is open (not restricted to Python/C++). None of these change PROJECT BETA's current plan — they're logged as available fallback levers in `Decision_Tracker.md` in case execution issues require a pivot later in the semester. He also asked that future policy/logistics questions go through Canvas rather than email, since TAs can help there and his email response time varies.
+**2026-09-03 — group approved.** A two-person team is permitted, and **the
+expectations do not depend on group size.** That matters more than the headcount
+does: the second contributor is genuine slack rather than a raised bar, so it is
+spent on depth and on workstreams that previously had no owner (the dashboard
+and replay mode above all), not on new scope. The Scope Tiers table (Outline §3)
+and the named fallback checkpoints are unchanged.
+
+**2026-08-28.** Three additional policy questions were emailed to Dr. Callison-Burch and confirmed by his reply (2026-08-28): VPN use has no restriction; real-money trading is allowed though he recommends sticking with simulated funds; implementation language is open (not restricted to Python/C++). None of these change PROJECT BETA's current plan — they're logged as available fallback levers in `Decision_Tracker.md` in case execution issues require a pivot later in the semester. He also asked that future policy/logistics questions go through Canvas rather than email, since TAs can help there and his email response time varies.
 
 ---
 

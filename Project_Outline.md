@@ -1,6 +1,6 @@
 # PROJECT BETA — Project Outline (Revision 11)
 
-**AI Capstone (CIS 5980) — AI Engineering Track — Solo Project**
+**AI Capstone (CIS 5980) — AI Engineering Track — Two-person team: Henry Dao and Jacky**
 
 Revisions 2–7 established scope, the multi-strategy architecture, the Product One-Pager (§1A) and the Demo Walkthrough (§19). **Revision 8** aligned to the Phase 1 deck. **Revision 8.1–8.2** verified the licensing audit and added publication constraints (§20.5). **Revision 9** recorded the verified data architecture (§9). **Revision 10 (2026-08-30)** completed the Phase 1 deck read, adding §22, §8A halt control, §20.3 step 3, and §19.5 replay mode.
 
@@ -368,13 +368,29 @@ Results regenerate from a clean clone using documented config and the documented
 | 13 | Polish for portfolio | Package repo/demo/report; no new features | — |
 | 14 | Ship | Final demo video, report, live presentation. **Second user-impact run** | **Final Presentation — end of Wk 14** |
 
-## 13. Work Breakdown (Solo Project)
+## 13. Work Breakdown and Ownership
 
-1. **Data & pipeline** — provider interface, ingestion, validation, RTH filtering, coverage rules, features, leakage prevention
-2. **ML** — regime + signal-quality models, calibration, ablations, feed-transfer validation
-3. **Systems** — risk engine, halt control, execution simulator, options execution layer, Alpaca integration, dashboard, replay mode, containerization
-4. **Evaluation & research** — harness, robustness tests, failure analysis, experiment log, latency/cost profiling
-5. **Docs & demo** — documentation, model/system cards, architecture diagram, demo video, report
+Two people. **Faculty confirmed 2026-09-03 that scope expectations do not scale
+with team size**, so the second person is genuine slack rather than a raised
+bar. That slack is spent on depth and on the workstreams that previously had no
+owner, not on new scope.
+
+| # | Stream | Contents | Owner |
+|---|---|---|---|
+| 1 | **Data & pipeline** | Provider interface, ingestion, validation, RTH filtering, coverage rules, features, leakage prevention | Henry |
+| 2 | **ML** | Regime + signal-quality models, calibration, ablations, feed-transfer validation | Henry |
+| 3 | **Systems — core** | Risk engine, halt control, execution simulator, Alpaca integration, containerization | Henry |
+| 4 | **Evaluation & research** | Harness, robustness tests, failure analysis, experiment log, latency/cost profiling | Henry |
+| 5 | **Systems — surface** | Dashboard, replay mode | **Jacky** (candidate) |
+| 6 | **Secondary tracks** | Crypto run, options execution layer | **Jacky** (candidate) |
+| 7 | **Adversarial** | Red-team pass, grounding audit | **Jacky** (candidate) |
+| 8 | **Docs & demo** | Documentation, model/system cards, architecture diagram, demo video, report | Shared |
+
+Streams 5 to 7 are the candidate slices in `Jacky_Contribution_Plan.md`; one is
+chosen after the skills conversation. **Streams 1 to 4 stay with Henry**: they
+are the critical path in Weeks 3 to 8 and require the whole mental model, so
+splitting them would cost more than it returns. Henry reviews and owns
+everything that ships regardless of who wrote it (§16).
 
 ## 14. Logs (all started Week 1)
 
@@ -404,7 +420,7 @@ Decision log · Experiment log (incl. halt postmortems, §8A) · AI usage log wi
 | Transaction-cost sensitivity at 5-minute bars | Cost-stress tests reported prominently |
 | Multi-strategy toggle dilutes evaluation rigor | Secondaries never enter the graded ladder; harness-enforced |
 | LLM cost / API changes | Cached outputs; pinned versions |
-| Solo bandwidth | Weekly journal; four logs; work breakdown; conditional tiers absorb slippage; named checkpoints |
+| **Team bandwidth and coordination** | Two people, and the risk has changed shape rather than halved. Onboarding costs one to two weeks; review adds latency; a workstream with a single owner stalls if that owner does. Mitigations: interface contracts that keep each stream separable (§13); branch-and-PR with Henry reviewing everything; **no critical-path work assigned to the second owner**, so any stall degrades scope rather than blocking the core; weekly journal, four logs, conditional tiers and named checkpoints as before |
 | Overfitting via repeated backtest iteration | Prespecify the primary metric before M1 experiments; log every experiment |
 | Milestone timing mismatch | Re-verify against Canvas each phase |
 
