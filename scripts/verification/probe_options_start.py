@@ -14,7 +14,7 @@ This script also stops guessing strikes. The expired-contract discovery
 endpoint DOES work with status=inactive (proved by the last run), so we
 enumerate real contracts and query those.
 
-Run:  cd ~/Desktop/Project-Beta && set -a && . ./.env && set +a && python3 probe_options_start.py
+Run: cd ~/Desktop/Project-Beta && set -a && . ./.env && set +a && python3 probe_options_start.py
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def contracts_for(h: dict, expiry: str, n: int = 3) -> list[str]:
         r = requests.get(f"{TRADING_ROOT}/options/contracts", params=params,
                          headers=h, timeout=30)
         if r.status_code != 200:
-            print(f"  discovery HTTP {r.status_code} — {r.text[:120]}")
+            print(f" discovery HTTP {r.status_code} - {r.text[:120]}")
             return []
         body = r.json()
         syms += [c["symbol"] for c in (body.get("option_contracts") or [])]
@@ -82,14 +82,14 @@ def main() -> None:
     earliest = None
 
     print("=" * 68)
-    print("Options history START — real contracts, unbounded lookback")
+    print("Options history START - real contracts, unbounded lookback")
     print("=" * 68)
 
     for expiry in EXPIRIES:
         print(f"\n{expiry}")
         syms = contracts_for(h, expiry)
         if not syms:
-            print("  no contracts enumerated for this expiry")
+            print(" no contracts enumerated for this expiry")
             out["expiries"][expiry] = {"contracts": 0}
             continue
         row: dict = {}
@@ -103,7 +103,7 @@ def main() -> None:
             )
             if r.status_code != 200:
                 row[sym] = {"http": r.status_code, "message": r.text[:200]}
-                print(f"  {sym}   HTTP {r.status_code} — {r.text[:90]}")
+                print(f" {sym} HTTP {r.status_code} - {r.text[:90]}")
                 continue
             bars = (r.json().get("bars") or {}).get(sym) or []
             if bars:
@@ -111,10 +111,10 @@ def main() -> None:
                 row[sym] = {"bars": len(bars), "first_bar": first}
                 if earliest is None or first < earliest:
                     earliest = first
-                print(f"  {sym}   {len(bars):>6,} bars   first: {first}")
+                print(f" {sym} {len(bars):>6,} bars first: {first}")
             else:
                 row[sym] = {"bars": 0}
-                print(f"  {sym}   {'0':>6} bars   (endpoint OK, no data)")
+                print(f" {sym} {'0':>6} bars (endpoint OK, no data)")
         out["expiries"][expiry] = row
 
     out["earliest_option_bar"] = earliest
@@ -123,8 +123,8 @@ def main() -> None:
         start = date.fromisoformat(earliest[:10])
         months = (date.today().year - start.year) * 12 + (date.today().month - start.month)
         print(f"Earliest option bar anywhere in this probe: {earliest}")
-        print(f"  -> roughly {months} months of options history ({months/12:.1f} years)")
-        print(f"  -> walk-forward at 36/6/6 needs 48 months for ONE fold: "
+        print(f" -> roughly {months} months of options history ({months/12:.1f} years)")
+        print(f" -> walk-forward at 36/6/6 needs 48 months for ONE fold: "
               f"{'OK' if months >= 48 else 'NOT ENOUGH'}")
     else:
         print("No bars retrieved at any expiry in this range.")

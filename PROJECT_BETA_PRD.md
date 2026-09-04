@@ -1,37 +1,37 @@
-# PROJECT BETA — Product Requirements Document (PRD)
+# PROJECT BETA - Product Requirements Document (PRD)
 
 **Version:** 3.0. **v3.0 (2026-09-01)** removes the news gate, adds the options execution layer (§5.6), makes every contract and config **asset-class-aware**, records the completed data verification, and specifies the six architecture seams (§3B) that keep the post-course upgrade bounded. **v2.1** hardened §5.11. **v2.0** added halt control, replay mode and the layered architecture. **v1.9** recorded the dual-feed data architecture.
 
 **Governing document:** Project Outline (**Revision 11**). *The Outline governs scope, timeline, evaluation methodology, the data architecture (§9), the scheduled-execution constraint (§9C), asset-class tiers (§7A), the upgrade path (§7B), the Responsible AI charter (§20), publication constraints (§20.5) and the AI application design answers (§22). This PRD adds engineering specifications. Where any conflict exists, the Outline wins and this PRD must be amended.*
 
-**Companion:** `Upgrade_Path.md` — seam signatures, post-course roadmap, vendor comparison.
+**Architecture seams:** described in `Project_Outline.md` §7B. Post-course roadmap and vendor comparison are maintained separately.
 
-**Note on this document's role.** The repo-hygiene lecture's stress test — *"can you regenerate the project from your spec and tests?"* — is why this PRD is kept current.
+**Note on this document's role.** The repo-hygiene lecture's stress test - *"can you regenerate the project from your spec and tests?"* - is why this PRD is kept current.
 
 ---
 
 ## 1. Product Vision
 
-PROJECT BETA is an AI-assisted paper-trading research platform built as a two-person AI Capstone project on the **AI Engineering track**. AI augments — never replaces — a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible — **and every reported result states which asset class it came from and how many folds stand behind it.**
+PROJECT BETA is an AI-assisted paper-trading research platform built as a two-person AI Capstone project on the **AI Engineering track**. AI augments - never replaces - a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible - **and every reported result states which asset class it came from and how many folds stand behind it.**
 
 ## 2. Goals and Non-Goals
 
 **Required (guaranteed core = the MVP):** end-to-end workflow; one primary rule-based strategy with full evaluation rigor; regime classifier; signal-quality model; deterministic risk engine **with halt control (§5.8A)**; execution simulator + Alpaca paper trading; decision logging; LLM explanation service **with grounding enforcement (§5.11)**; failure-analysis assistant; dashboard **with replay mode (§5.12A)**; evaluation harness; model cards, system card, container, latency & cost report (§5.15). **Plus the six architecture seams (§3B).**
 
-**Graded secondary:** crypto (BTC/USD) — same pipeline, ~4 folds, fold count reported with every figure.
-**Validated execution layer:** single-leg SPY options (§5.6) — no strategy-performance claim.
-**Optional:** read-only trade query layer (Week 10 gate — §5.11).
+**Graded secondary:** crypto (BTC/USD) - same pipeline, ~4 folds, fold count reported with every figure.
+**Validated execution layer:** single-leg SPY options (§5.6) - no strategy-performance claim.
+**Optional:** read-only trade query layer (Week 10 gate - §5.11).
 
-**Non-goals (permanent):** live-money trading; reinforcement learning; autonomous LLM trading decisions; HFT/tick data; multiple fully-evaluated graded strategies; SEC-filing RAG; AI-controlled risk rules; **news/sentiment gate (dropped 2026-08-31)**; **generative what-if scenarios (§5.11 — excluded on grounding grounds, not scope)**.
+**Non-goals (permanent):** live-money trading; reinforcement learning; autonomous LLM trading decisions; HFT/tick data; multiple fully-evaluated graded strategies; SEC-filing RAG; AI-controlled risk rules; **news/sentiment gate (dropped 2026-08-31)**; **generative what-if scenarios (§5.11 - excluded on grounding grounds, not scope)**.
 
-**Account type:** **Alpaca Trading API, Basic (free) tier.** Not Broker API — that serves end users other than the account holder, breaching the personal, non-commercial data licences and moving the project into the LLM provider's consumer-facing high-risk category.
+**Account type:** **Alpaca Trading API, Basic (free) tier.** Not Broker API - that serves end users other than the account holder, breaching the personal, non-commercial data licences and moving the project into the LLM provider's consumer-facing high-risk category.
 
-## 3. System Architecture — data flow
+## 3. System Architecture - data flow
 
 ```text
-Market Data — Alpaca Basic tier, DUAL FEED (Outline §9), via MarketDataProvider (§3B.1)
+Market Data - Alpaca Basic tier, DUAL FEED (Outline §9), via MarketDataProvider (§3B.1)
     backtest mode → SIP consolidated, 2016-06-10 onward
-    paper mode    → IEX — VERIFIED real-time, streaming entitled (2026-09-01)
+    paper mode → IEX - VERIFIED real-time, streaming entitled (2026-09-01)
 → 1. Data Pipeline (ingest, validate, RTH filter)
 → 2. Feature Engineering (scale-free volume features, §5.2)
 → 3. Strategy Engine
@@ -40,7 +40,7 @@ Market Data — Alpaca Basic tier, DUAL FEED (Outline §9), via MarketDataProvid
 → 7. Trade Decision Engine
 → 8. Risk Engine (deterministic) + 8A Halt Control
 → 6. Instrument Selection / Options Execution Layer (deterministic)
-→ 9. Execution Layer (simulator | Alpaca paper — paper endpoints only)
+→ 9. Execution Layer (simulator | Alpaca paper - paper endpoints only)
 → 10. Decision Log (single source of truth)
 → 11. Explanation Service (reads log only) → grounding filter → store/display
 → 12. Dashboard (live | replay) + 12A Replay Mode
@@ -51,19 +51,19 @@ Market Data — Alpaca Basic tier, DUAL FEED (Outline §9), via MarketDataProvid
 
 **Ordering note:** instrument selection sits *after* the risk engine. The decision to trade is made on the underlying; choosing the instrument that expresses it is a separate, deterministic step. This keeps the options layer out of the decision path entirely.
 
-## 3A. System Architecture — layered view
+## 3A. System Architecture - layered view
 
 | Layer | Modules | Constraint |
 |---|---|---|
-| **Frontend** | 5.12 Dashboard, 5.12A Replay Mode | Browser UI served locally. Single user, no auth surface, no public exposure — licensing, not preference (Outline §22.3) |
+| **Frontend** | 5.12 Dashboard, 5.12A Replay Mode | Browser UI served locally. Single user, no auth surface, no public exposure - licensing, not preference (Outline §22.3) |
 | **Backend** | **MarketDataProvider (§3B.1)** · 5.1 Data Pipeline · 5.2 Features · 5.3 Strategy Engine · 5.6 Instrument Selection · 5.7 Trade Decision Engine · 5.8 Risk Engine · 5.8A Halt Control · 5.9 Execution · 5.10 Decision Log · 5.14 Evaluation Harness · **grounding filter (§5.11)** | Fully deterministic. **No AI in the trade decision path, and none in instrument selection** |
 | **AI layer** | 5.4 Regime Classifier · 5.5 Signal-Quality Model (local classical ML) · 5.11 Explanation Service · 5.13 Failure-Analysis narrative (hosted LLM) | Contributes classifications the backend consumes, and reads the log to produce prose. **Never writes into the decision path** |
 
-**The load-bearing property:** the AI layer's outputs enter the backend as *data*, never as instructions — and, for generated prose, only after passing the grounding filter.
+**The load-bearing property:** the AI layer's outputs enter the backend as *data*, never as instructions - and, for generated prose, only after passing the grounding filter.
 
 ## 3B. Architecture Seams (new, v3.0)
 
-Six extension points, built during the course so the post-course options upgrade is an adapter-and-config job rather than a rewrite (Outline §7B). Roughly 10% overhead now; 4–6 weeks retrofitted. **Each has a named second implementation already on the roadmap — none is speculative.**
+Six extension points, built during the course so the post-course options upgrade is an adapter-and-config job rather than a rewrite (Outline §7B). Roughly 10% overhead now; 4–6 weeks retrofitted. **Each has a named second implementation already on the roadmap - none is speculative.**
 
 ### 3B.1 MarketDataProvider
 
@@ -71,8 +71,8 @@ Six extension points, built during the course so the post-course options upgrade
 class MarketDataProvider(Protocol):
     def get_bars(symbol, timeframe, start, end, feed) -> DataFrame: ...
     def list_contracts(underlying, as_of, filters) -> list[Contract]: ...
-    def get_quotes(symbol, start, end) -> DataFrame: ...          # NotSupported on Alpaca
-    def get_chain_snapshot(underlying, as_of) -> Chain: ...        # NotSupported on Alpaca
+    def get_quotes(symbol, start, end) -> DataFrame: ... # NotSupported on Alpaca
+    def get_chain_snapshot(underlying, as_of) -> Chain: ... # NotSupported on Alpaca
 ```
 
 **Define the full interface, including what the current vendor cannot do.** The Alpaca adapter raises `NotSupported` for quotes and chain snapshots; the pipeline degrades **explicitly and loudly**, never silently. Shaping the interface around one vendor's limits makes those limits architectural.
@@ -81,7 +81,7 @@ class MarketDataProvider(Protocol):
 
 ### 3B.2 Asset-class-parameterised RunConfig
 
-`data_start`, session calendar, fold scheme, feature set and fill model are **per asset class**, never global constants. **AC:** adding a new asset class requires no change to harness or pipeline code — a config test proves it by registering a dummy class.
+`data_start`, session calendar, fold scheme, feature set and fill model are **per asset class**, never global constants. **AC:** adding a new asset class requires no change to harness or pipeline code - a config test proves it by registering a dummy class.
 
 ### 3B.3 Results schema with provenance
 
@@ -137,7 +137,7 @@ Each feature declares `requires: bars | quotes | chain_snapshots`. The pipeline 
 
 `decision` ∈ {approved, reduced, delayed, rejected}. Reason codes come from a fixed documented enum. `asset_class`, `feed` and `vendor` are **mandatory**.
 
-**The `instrument` block (new, v3.0).** For equities and crypto, `selection_rule: passthrough_v1` and `selected` equals the underlying. For options it carries the OCC symbol, the rule version, and — critically — **`tradeable`**, recording whether a bar actually existed at decision time. A `tradeable: false` record is a *result*, not an error: it is the raw material of the fill-feasibility study (§5.6).
+**The `instrument` block (new, v3.0).** For equities and crypto, `selection_rule: passthrough_v1` and `selected` equals the underlying. For options it carries the OCC symbol, the rule version, and - critically - **`tradeable`**, recording whether a bar actually existed at decision time. A `tradeable: false` record is a *result*, not an error: it is the raw material of the fill-feasibility study (§5.6).
 
 **A structural subtlety the grounding checker depends on.** `regime.probs` contains every regime *name* as a key, but the record only *asserts* the one in `regime.label`. A grounding check that treats keys as permitted values silently accepts a wrong regime claim. Keys are not claims; values are.
 
@@ -147,15 +147,15 @@ Each feature declares `requires: bars | quotes | chain_snapshots`. The pipeline 
 
 ```yaml
 run_id: run_2026q3_wf_fold3
-mode: backtest                       # backtest | paper | replay
-asset_class: equity                  # equity | crypto | option        (§3B.2)
-provider: alpaca                     # resolves a MarketDataProvider   (§3B.1)
+mode: backtest # backtest | paper | replay
+asset_class: equity # equity | crypto | option (§3B.2)
+provider: alpaca # resolves a MarketDataProvider (§3B.1)
 data:
   symbol: SPY
   timeframe: 5Min
   feed: sip
-  session: rth_only                  # rth_only | continuous | options_rth
-  start: 2016-06-10                  # ASSET-CLASS SPECIFIC — see below
+  session: rth_only # rth_only | continuous | options_rth
+  start: 2016-06-10 # ASSET-CLASS SPECIFIC - see below
   end: 2026-06-30
   dataset_hash: "sha256:..."
 strategy: {name: momentum_breakout, version: mom_v1.2, params: {...}, tier: primary}
@@ -164,11 +164,11 @@ models:
   signal_quality: {version: sq_xgb_v0.2, artifact_hash: "sha256:..."}
   llm: {provider: ..., model_version: "pinned-id", purpose: explanation_only}
 instrument:
-  selection_rule: passthrough_v1     # passthrough_v1 | occ_single_leg_v1
-  expiry_window_days: [7, 45]        # options only
-  moneyness_band: [0.98, 1.02]       # options only
-  min_liquidity_bars: 20             # options only, from the measured screen
-fill_model: bar_v1                   # bar_v1 | sparse_bar_v1 | quote_v1  (§3B.5)
+  selection_rule: passthrough_v1 # passthrough_v1 | occ_single_leg_v1
+  expiry_window_days: [7, 45] # options only
+  moneyness_band: [0.98, 1.02] # options only
+  min_liquidity_bars: 20 # options only, from the measured screen
+fill_model: bar_v1 # bar_v1 | sparse_bar_v1 | quote_v1 (§3B.5)
 risk:
   max_position: ...
   max_drawdown: 0.15
@@ -187,7 +187,7 @@ seed: 42
 |---|---|---|---|
 | `equity` | 2016-06-10 | `rth_only` | ~14 |
 | `crypto` | ≥2021-06-10 | `continuous` | ~4 |
-| `option` | **2024-01-18** | `options_rth` | **0 — no walk-forward** |
+| `option` | **2024-01-18** | `options_rth` | **0 - no walk-forward** |
 
 An `asset_class: option` RunConfig with a `walk_forward` block **must be rejected at load time.** Options makes no walk-forward claim, and a config that silently accepts one invites a result nobody can defend.
 
@@ -196,7 +196,7 @@ An `asset_class: option` RunConfig with a `walk_forward` block **must be rejecte
 ### 5.1 Data Pipeline
 - **Responsibility:** ingest and validate OHLCV **through a `MarketDataProvider` (§3B.1)**; apply the session filter; produce a versioned, hashed dataset.
 - **Feed selection:** `sip` in backtest, `iex` in paper. Must refuse a mode/feed combination the account cannot serve (SIP recent returns 403) with a clear error, not an empty result.
-- **Session filtering (mandatory).** SIP returns 192 bars/day (04:00–20:00 ET). **IEX returns 74–87 bars/day against a 78-bar regular-session maximum, and options bars show the same pattern** — the filter is load-bearing on all three feeds. Applied **here**, at ingestion.
+- **Session filtering (mandatory).** SIP returns 192 bars/day (04:00–20:00 ET). **IEX returns 74–87 bars/day against a 78-bar regular-session maximum, and options bars show the same pattern** - the filter is load-bearing on all three feeds. Applied **here**, at ingestion.
 - **Coverage rules (revised v3.0, from measurement):**
   - **Do not assert exactly 78 bars/day** as a completeness test on IEX or options. Post-filter counts legitimately fall short when 5-minute intervals contain no trades on a feed carrying ~3% of consolidated volume. *The v2.1 criterion requiring exactly 78 bars was correct for SIP and wrong for IEX; it is now feed-specific.*
   - **Flag days below ~90% coverage for review**, do not auto-reject.
@@ -213,25 +213,25 @@ An `asset_class: option` RunConfig with a `walk_forward` block **must be rejecte
 - **AC:** leakage test passes (shift-forward invariance); feature reference table complete with derivation tags; **no volume feature in absolute units (test over the feature registry)**; the transfer result is logged before the signal-quality model is trained.
 
 ### 5.3 Strategy Engine
-`generate_candidates(features, bars) -> list[CandidateTrade]`. Primary: momentum breakout, full rigor. Secondary: MA trend, mean reversion — backtest-only, labeled exploratory. **AC:** same data + config ⇒ byte-identical candidate list; the harness refuses a graded ablation for any `tier: secondary` strategy.
+`generate_candidates(features, bars) -> list[CandidateTrade]`. Primary: momentum breakout, full rigor. Secondary: MA trend, mean reversion - backtest-only, labeled exploratory. **AC:** same data + config ⇒ byte-identical candidate list; the harness refuses a graded ablation for any `tier: secondary` strategy.
 
 ### 5.4 Regime Classifier
 Per-bar regime probabilities; 3 trend states + binary volatility flag. Logistic regression baseline → RF/XGBoost. **AC:** walk-forward only across ~14 folds (equity) or ~4 (crypto); calibration curve + Brier per fold; M1-vs-B2 ablation; **per-regime and per-volatility-state breakdown**; Model Card records the feed **and asset class**; **no options-trained variant exists** (§5.6).
 
 ### 5.5 Signal-Quality Model
 Scores each CandidateTrade → `{p_profit, p_target_before_stop, model_version}`. Labels from simulated outcomes under the evaluation cost model; probabilities calibrated. **Feature set contingent on the §5.2 verdict.**
-- **Scope:** this model scores the **underlying**. It is never trained on options bars — contract selection is deterministic and downstream (§5.6), which is why the options track needs no folds of its own.
+- **Scope:** this model scores the **underlying**. It is never trained on options bars - contract selection is deterministic and downstream (§5.6), which is why the options track needs no folds of its own.
 - **Regime abstention.** Where evaluation shows the model underperforms B2 in a regime, that regime is listed in `risk.regime_abstain` and the model **abstains**. This is Outline §20.3's fairness mitigation, implemented rather than intended.
 - **AC:** calibration report per fold; M2-vs-M1 ablation; accept/reject rates sliced by regime; **abstention has a dedicated test asserting no SQ-driven rejection occurs in an abstaining regime.**
 
-### 5.6 Instrument Selection / Options Execution Layer (new v3.0 — replaces the deleted News Gate)
+### 5.6 Instrument Selection / Options Execution Layer (new v3.0 - replaces the deleted News Gate)
 
 **Deterministic. No AI, ever.** Given an approved candidate on the underlying, selects the instrument that expresses it and records whether that instrument was tradeable.
 
-- **Equities and crypto:** `passthrough_v1` — `selected` equals the underlying, `tradeable: true`.
+- **Equities and crypto:** `passthrough_v1` - `selected` equals the underlying, `tradeable: true`.
 - **Options:** `occ_single_leg_v1`. Contracts are enumerated via `/v2/options/contracts` with **`status=inactive`** for historical windows (verified 2026-09-01, `HTTP 200`); hand-built OCC symbology is a fallback, not a requirement. Selection is by expiry window, moneyness band and a **measured** minimum-liquidity threshold, all from RunConfig.
-- **Point-in-time correctness (critical).** The candidate universe comes from `universe_as_of(t)` (§3B.4). Selecting a contract *because it turns out to have bars* uses knowledge that it traded — look-ahead bias in its purest form, and the project's most likely correctness defect.
-- **Liquidity screen.** Bar presence by moneyness bucket, **fitted on the first ~25 months of options history and tested on the last ~6** — a genuine held-out split validating the selection rule. *Note: the exploratory probes sampled mid-range strikes rather than near-the-money, which understates ATM liquidity; the screen must be built from an ATM-anchored sample.*
+- **Point-in-time correctness (critical).** The candidate universe comes from `universe_as_of(t)` (§3B.4). Selecting a contract *because it turns out to have bars* uses knowledge that it traded - look-ahead bias in its purest form, and the project's most likely correctness defect.
+- **Liquidity screen.** Bar presence by moneyness bucket, **fitted on the first ~25 months of options history and tested on the last ~6** - a genuine held-out split validating the selection rule. *Note: the exploratory probes sampled mid-range strikes rather than near-the-money, which understates ATM liquidity; the screen must be built from an ATM-anchored sample.*
 - **What it reports:** fill-feasibility rate with confidence intervals; execution-cost characterisation by moneyness and regime; and the stated limitation that **Alpaca provides no historical options quotes**, so spread and slippage are bar-derived proxies.
 - **What it never reports:** Sharpe, drawdown, or any strategy-performance metric for the options track (Outline §7A).
 
@@ -241,7 +241,7 @@ Scores each CandidateTrade → `{p_profit, p_target_before_stop, model_version}`
 Combines strategy signal, regime permission, signal-quality threshold and **regime abstention** into one decision with reason codes. Pure function of its inputs; documented precedence (**risk > quality > regime**). **AC:** unit tests cover every reason-code path including abstention; identical inputs ⇒ identical output.
 
 ### 5.8 Risk Engine
-Deterministic sizing and constraint enforcement. No ML inside, ever. **AC:** property-based tests — no input sequence can exceed configured drawdown/exposure limits; each constraint has a dedicated triggering test.
+Deterministic sizing and constraint enforcement. No ML inside, ever. **AC:** property-based tests - no input sequence can exceed configured drawdown/exposure limits; each constraint has a dedicated triggering test.
 
 ### 5.8A Halt Control
 
@@ -249,7 +249,7 @@ Deterministic sizing and constraint enforcement. No ML inside, ever. **AC:** pro
 - **Manual kill switch:** one command, and a dashboard control.
 - **Position policy on halt:** open positions are **left as they are**, not liquidated. An automatic unwind is itself a risky unsupervised action.
 - **Auto-halt triggers**, each with a distinct reason code: daily loss limit · drawdown breach · consecutive broker API errors · data staleness · failed pre-trade sanity check · **authentication failure (new v3.0)**.
-- **Restart is deliberate** — explicit operator action.
+- **Restart is deliberate** - explicit operator action.
 - **Rollback:** versioned, hashed artifacts.
 - **Postmortem:** every auto-halt gets an experiment-log entry, feeding §5.13.
 - **AC:** a test triggers **each** auto-halt condition and asserts no order follows; the kill switch stops the loop within one bar interval; every halt writes a reason-coded record; restart requires an explicit call and is tested.
@@ -258,7 +258,7 @@ Deterministic sizing and constraint enforcement. No ML inside, ever. **AC:** pro
 Fill simulation (backtest) and Alpaca paper submission (paper mode) behind one interface, **with a pluggable fill model (§3B.5)**.
 
 - **Paper-only:** paper endpoints and credentials only; no live-money code path.
-- **Data recency — RESOLVED 2026-09-01.** The Basic tier's restriction applies to SIP (403 recent, 409 streaming). **IEX is genuinely real-time** — latest trade 0.1 min old, latest quote ~0, and the **websocket stream authenticates and delivers trades ~0.1 s old**. No paid tier is required for M3.
+- **Data recency - RESOLVED 2026-09-01.** The Basic tier's restriction applies to SIP (403 recent, 409 streaming). **IEX is genuinely real-time** - latest trade 0.1 min old, latest quote ~0, and the **websocket stream authenticates and delivers trades ~0.1 s old**. No paid tier is required for M3.
 - **Bar-lag interpretation.** REST *bar* lag cycles between ~0 and ~5 minutes because it reports the last *completed* 5-minute bar. That is the bar interval, **not feed latency**.
 - **No-forward-fill rule (new v3.0).** An absent bar is an interval in which the instrument did not trade. `SparseBarFillModel` returns `NoFill`; it never synthesises a price. Applies to thin options strikes **and** thin IEX intervals.
 - **Credential validity (new v3.0).** A check that credentials are *non-empty* is not a check. The layer makes one authenticated call at startup and **aborts on non-200**. *A key rotation on 2026-09-01 would otherwise have produced a full run of 403s that looked like a successful run.*
@@ -276,10 +276,10 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 **Three layers of enforcement**, implemented in `project_beta.grounding`, **built before the service exists**:
 
 1. **Output filter, at generation time.** `enforce_grounding(text, record)` runs before an explanation is stored or displayed. Every numeral and controlled-vocabulary state label must trace to a field in the source record; a failure raises and the explanation is blocked.
-2. **Automated claim checking, in the audit.** `check_explanation` does the mechanical part of the ≥50-sample audit — numeric claims (accepting percentage and rounded renderings: `0.72` ↔ `"72%"`) and state labels. **Human judgment is reserved for non-numeric prose.**
+2. **Automated claim checking, in the audit.** `check_explanation` does the mechanical part of the ≥50-sample audit - numeric claims (accepting percentage and rounded renderings: `0.72` ↔ `"72%"`) and state labels. **Human judgment is reserved for non-numeric prose.**
 3. **Drift canary.** A fixed DecisionRecord passes through the live service in CI; the result must be grounded and must still mention the key state values.
 
-**What the checker deliberately does not do.** It cannot judge prose. Small-integer suppression exists as an option and is **off by default** — a check that quietly ignores things is how a guardrail rots.
+**What the checker deliberately does not do.** It cannot judge prose. Small-integer suppression exists as an option and is **off by default** - a check that quietly ignores things is how a guardrail rots.
 
 **New fields to cover (v3.0).** `asset_class` and the `instrument` block are assertable state: an explanation claiming a contract was tradeable when `tradeable: false` must fail the filter.
 
@@ -290,12 +290,12 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 **AC:**
 - **No explanation is stored or displayed without passing `enforce_grounding`;** a test asserts a hallucinated explanation raises.
 - The ≥50-sample audit reports **100% grounded**, with the machine-checked/human-read split recorded. **Any hallucinated claim is a release blocker.**
-- **Regression test on the label check:** a regime name appearing only as a key in `regime.probs` must **not** count as an asserted state. *This was a real defect, caught by the checker's own hallucination tests — the argument for writing those first.*
+- **Regression test on the label check:** a regime name appearing only as a key in `regime.probs` must **not** count as an asserted state. *This was a real defect, caught by the checker's own hallucination tests - the argument for writing those first.*
 - **A false `instrument.tradeable` claim raises.**
 - The drift canary passes, or its failure is investigated before results are published.
 
 ### 5.12 Dashboard
-Current regime, open positions, equity curve, recent decisions with explanations, strategy-toggle panel, **cross-asset panel**, **halt status and kill switch**. **Requirements:** a persistent, non-dismissible "paper trading only — not investment advice" statement; results views display **asset class, feed, session and fold count**; **live vs. replay unambiguously labeled**; **each cross-asset panel states its tier**, so a viewer cannot mistake a 4-fold crypto figure or an options feasibility rate for a core result. **AC:** measured via Outline §10.2; disclaimer string CI-asserted; halt control reachable without leaving the main screen; tier labels CI-asserted.
+Current regime, open positions, equity curve, recent decisions with explanations, strategy-toggle panel, **cross-asset panel**, **halt status and kill switch**. **Requirements:** a persistent, non-dismissible "paper trading only - not investment advice" statement; results views display **asset class, feed, session and fold count**; **live vs. replay unambiguously labeled**; **each cross-asset panel states its tier**, so a viewer cannot mistake a 4-fold crypto figure or an options feasibility rate for a core result. **AC:** measured via Outline §10.2; disclaimer string CI-asserted; halt control reachable without leaving the main screen; tier labels CI-asserted.
 
 ### 5.12A Replay Mode
 
@@ -313,7 +313,7 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 **AC:** one command produces the full results table; **every results row records `asset_class`, `feed`, `session`, `fold_scheme` and `n_folds` (§3B.3), and a schema test rejects a row missing any of them**; **the harness refuses to place SIP- and IEX-derived runs, or runs from different asset classes, in the same comparison table**; **it refuses to compute a Sharpe or drawdown for `asset_class: option`.**
 
 ### 5.15 Packaging, Cards & Release Engineering
-**Model Cards** (Wk 9) — feed provenance, asset class, fold count, the §5.2 transfer result, calibration, limitations. **System Card** (Wk 9) — the composed pipeline, where AI sits and where it deliberately does not, the guardrails, the asset-class tier structure and why each tier claims what it claims. **Container** (Wk 12). **Latency & cost report** (Wk 12). **AC:** `docker build` succeeds from a clean checkout; cards linked from the README; CI green with no test disabled.
+**Model Cards** (Wk 9) - feed provenance, asset class, fold count, the §5.2 transfer result, calibration, limitations. **System Card** (Wk 9) - the composed pipeline, where AI sits and where it deliberately does not, the guardrails, the asset-class tier structure and why each tier claims what it claims. **Container** (Wk 12). **Latency & cost report** (Wk 12). **AC:** `docker build` succeeds from a clean checkout; cards linked from the README; CI green with no test disabled.
 
 ## 6. Cross-Cutting Requirements
 
@@ -344,23 +344,23 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 
 | Weeks | Internal focus | PRD modules due | Official milestone |
 |---|---|---|---|
-| 1–2 | Foundation | **§3B.1 provider + 5.2 transfer experiment (the first build task)**, 5.1, schemas §4, **§5.11 grounding checker**, seams §3B.2–3B.6 scaffolded, logs, leakage tests, repo hygiene set, Responsible AI charter, focus areas, Outline §22 design answers, pitch artifact | **Milestone 1 — end of Wk 2** |
-| 3–4 | Baselines + harness | 5.3, 5.8, **5.8A halt control**, 5.9 (simulator), 5.10, 5.14 core; B1/B2 over ~14 folds; **Data Card** | — |
-| 5 | Regime prototype | 5.4 first-cut, wired end-to-end | **Milestone 2 — end of Wk 5** |
-| 6 | Regime intelligence | 5.4 finalized; M1 ablation. *Fallback checkpoint + graded-options gate* | — |
-| 7–8 | Signal intelligence | 5.5 (feature set per the §5.2 verdict, incl. abstention); M2 ablation. *Fallback checkpoint* | — |
-| 9 | **ALPHA** | 5.9 on the paper account via IEX, basic 5.12, **halt control live**, running unattended from a non-protected folder. **Model Cards + System Card** | **Milestone 3 — end of Wk 9** |
-| 9–10 | Cross-asset tracks | Crypto secondary run (~4 folds); **5.6 options execution layer** | — |
-| 10 | Gates · safety | Query-layer decision logged; **red-team pass on 5.11** | — |
-| 11–12 | Interpretability + robustness + release candidate | 5.11 service wired to the existing filter, 5.13, **5.12A replay mode**, robustness suite, fresh-clone test, container, latency & cost report, user-impact run | **Milestone 4 — end of Wk 12** |
-| 13 | Polish for portfolio | Package repo/demo/report | — |
-| 14 | Ship | Demo video, final report, live presentation (replay-backed) | **Final Presentation — end of Wk 14** |
+| 1–2 | Foundation | **§3B.1 provider + 5.2 transfer experiment (the first build task)**, 5.1, schemas §4, **§5.11 grounding checker**, seams §3B.2–3B.6 scaffolded, logs, leakage tests, repo hygiene set, Responsible AI charter, focus areas, Outline §22 design answers, pitch artifact | **Milestone 1 - end of Wk 2** |
+| 3–4 | Baselines + harness | 5.3, 5.8, **5.8A halt control**, 5.9 (simulator), 5.10, 5.14 core; B1/B2 over ~14 folds; **Data Card** | - |
+| 5 | Regime prototype | 5.4 first-cut, wired end-to-end | **Milestone 2 - end of Wk 5** |
+| 6 | Regime intelligence | 5.4 finalized; M1 ablation. *Fallback checkpoint + graded-options gate* | - |
+| 7–8 | Signal intelligence | 5.5 (feature set per the §5.2 verdict, incl. abstention); M2 ablation. *Fallback checkpoint* | - |
+| 9 | **ALPHA** | 5.9 on the paper account via IEX, basic 5.12, **halt control live**, running unattended from a non-protected folder. **Model Cards + System Card** | **Milestone 3 - end of Wk 9** |
+| 9–10 | Cross-asset tracks | Crypto secondary run (~4 folds); **5.6 options execution layer** | - |
+| 10 | Gates · safety | Query-layer decision logged; **red-team pass on 5.11** | - |
+| 11–12 | Interpretability + robustness + release candidate | 5.11 service wired to the existing filter, 5.13, **5.12A replay mode**, robustness suite, fresh-clone test, container, latency & cost report, user-impact run | **Milestone 4 - end of Wk 12** |
+| 13 | Polish for portfolio | Package repo/demo/report | - |
+| 14 | Ship | Demo video, final report, live presentation (replay-backed) | **Final Presentation - end of Wk 14** |
 
 ## 8. Release Acceptance Criteria
 
 1. End-to-end run in both modes from ingestion through decision, logging, and dashboard.
 2. **Ablation B1→M2 complete under walk-forward with costs, on equities.** Crypto reported with its fold count; options reported as feasibility, not performance.
-3. The prespecified primary metric comparison reported — improvement **or** a rigorously characterized negative result.
+3. The prespecified primary metric comparison reported - improvement **or** a rigorously characterized negative result.
 4. **Explanation audit passes at 100% grounded, with the machine-checked/human-read split recorded, and no explanation was ever stored or displayed without passing the generation-time filter.**
 5. Every candidate trade is auditable end to end.
 6. Top 3 failure modes documented with targeted tests merged.
@@ -380,15 +380,15 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 
 ## 9. Open Questions
 
-**Resolved:** primary strategy · bar timeframe · multi-strategy architecture · AI usage policy · **team composition (two-person group approved 2026-09-03; expectations do not scale with size)** · redistribution prohibited · Trading API vs Broker API · LLM output rights and provider policy · **data source, tier, feeds, `data.start` per asset class, fold design, session filtering, scale-free volume features** · **AI role, interaction style, platform, pattern tier, task inventory** · **what-if excluded on grounding grounds** · **hallucination enforcement mechanism** · **IEX real-time latency and streaming entitlement (2026-09-01)** · **news gate — dropped** · **asset-class tiers** · **vendor switch for options — rejected on fold arithmetic** · **Week 10 red-team target — the explanation service** · **TCC / scheduled-execution constraint**.
+**Resolved:** primary strategy · bar timeframe · multi-strategy architecture · AI usage policy · **team composition (two-person group approved 2026-09-03; expectations do not scale with size)** · redistribution prohibited · Trading API vs Broker API · LLM output rights and provider policy · **data source, tier, feeds, `data.start` per asset class, fold design, session filtering, scale-free volume features** · **AI role, interaction style, platform, pattern tier, task inventory** · **what-if excluded on grounding grounds** · **hallucination enforcement mechanism** · **IEX real-time latency and streaming entitlement (2026-09-01)** · **news gate - dropped** · **asset-class tiers** · **vendor switch for options - rejected on fold arithmetic** · **Week 10 red-team target - the explanation service** · **TCC / scheduled-execution constraint**.
 
 **Still open:**
-- **The §5.2 transfer-validation result** — Week 1–2, blocking §5.5. **The only open data-side risk.**
-- **Professional vs Non-Professional subscriber classification** — no such document exists in the account.
-- **Query layer go/no-go** — Week 10.
-- **Signal-quality acceptance threshold default** — after first M2 calibration.
-- **Dashboard stack** — Week 3.
-- **Compute-budget LLM figure** — needs a real cost-per-decision measurement.
-- **Whether the grounding checker needs a prose-claim heuristic** — decide after the first ≥50-sample audit.
-- **Options ATM liquidity characterisation** — needed before the §5.6 selection rule can be finalised.
-- **Final Technical Report due date**, and **M1 due week** — confirm on Canvas.
+- **The §5.2 transfer-validation result** - Week 1–2, blocking §5.5. **The only open data-side risk.**
+- **Professional vs Non-Professional subscriber classification** - no such document exists in the account.
+- **Query layer go/no-go** - Week 10.
+- **Signal-quality acceptance threshold default** - after first M2 calibration.
+- **Dashboard stack** - Week 3.
+- **Compute-budget LLM figure** - needs a real cost-per-decision measurement.
+- **Whether the grounding checker needs a prose-claim heuristic** - decide after the first ≥50-sample audit.
+- **Options ATM liquidity characterisation** - needed before the §5.6 selection rule can be finalised.
+- **Final Technical Report due date**, and **M1 due week** - confirm on Canvas.

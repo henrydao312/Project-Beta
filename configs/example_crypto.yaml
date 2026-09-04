@@ -1,4 +1,4 @@
-# Crypto secondary track — a real validated result, explicitly underpowered.
+# Crypto secondary track - a real validated result, explicitly underpowered.
 #
 # ~63 months of BTC/USD 5-minute history gives ~4 folds against the equity
 # core's ~13. That number travels with every figure this config produces; it
@@ -13,7 +13,7 @@ data:
   timeframe: 5Min
   # No feed: the sip/iex distinction is an equities concept and Alpaca
   # versions its data APIs per asset class.
-  session: continuous       # BTC/USD trades 24/7; an RTH filter would invent a session
+  session: continuous # BTC/USD trades 24/7; an RTH filter would invent a session
   start: 2021-06-10
   end: 2026-08-31
   dataset_hash: null

@@ -1,4 +1,4 @@
-"""Guardrail tests — the project's own safety and licensing rules, enforced in CI.
+"""Guardrail tests - the project's own safety and licensing rules, enforced in CI.
 
 These exist so the constraints in the Responsible AI charter cannot quietly
 erode. Each one corresponds to a documented commitment; if a test here fails,
@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # distributing market data. See Outline §20.1 and §20.5.
 DATA_EXTENSIONS = {".csv", ".parquet", ".feather", ".h5", ".arrow"}
 FIXTURE_DIR = REPO_ROOT / "data" / "fixtures"
-MAX_FIXTURE_BYTES = 512 * 1024  # a sample, not a dataset
+MAX_FIXTURE_BYTES = 512 * 1024 # a sample, not a dataset
 
 
 def _tracked_files() -> list[Path]:
@@ -91,7 +91,7 @@ def test_no_market_data_files_are_committed() -> None:
             )
     assert not offenders, (
         "Market data must not be redistributed (Outline §20.1, §20.5). "
-        "Offending files:\n  " + "\n  ".join(offenders)
+        "Offending files:\n " + "\n ".join(offenders)
     )
 
 
@@ -101,7 +101,7 @@ def test_no_verification_reports_are_committed() -> None:
     The data-extension check above misses these: a verification report is a
     .json file, and .json is deliberately not in DATA_EXTENSIONS because
     configs and schemas legitimately use it. But `report_*.json` from the
-    Alpaca probes carries per-day IEX volume, bar counts and timestamps —
+    Alpaca probes carries per-day IEX volume, bar counts and timestamps - 
     derived from vendor bars and covered by the same terms as the bars.
     Caught here by name rather than by extension.
     """
@@ -118,7 +118,7 @@ def test_no_verification_reports_are_committed() -> None:
 
 # An Alpaca key assignment followed by something that actually looks like a key:
 # paper IDs begin PK, live IDs begin AK, both ~20 chars. Matching the *shape of a
-# value* rather than the variable name matters — an earlier version searched for
+# value* rather than the variable name matters - an earlier version searched for
 # the bare marker string and flagged this very file for containing its own
 # search terms.
 CREDENTIAL_PATTERN = re.compile(
@@ -136,7 +136,7 @@ def test_no_credentials_are_committed() -> None:
         if path.suffix not in {".py", ".yaml", ".yml", ".md", ".sh", ".txt"}:
             continue
         if not path.exists() or path.resolve() == Path(__file__).resolve():
-            continue  # this file defines the pattern; scanning it is circular
+            continue # this file defines the pattern; scanning it is circular
         if CREDENTIAL_PATTERN.search(path.read_text(errors="ignore")):
             offenders.append(str(path.relative_to(REPO_ROOT)))
     assert not offenders, f"possible credential literals in: {offenders}"

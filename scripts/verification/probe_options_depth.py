@@ -8,17 +8,17 @@ scope decisions:
 
   * discovery-only limitation -> options CAN be backtested; we name contracts
     ourselves from the OCC symbology instead of enumerating them.
-  * data genuinely absent      -> the options track is paper-forward only:
+  * data genuinely absent -> the options track is paper-forward only:
     demonstrated live, never backtested. Legitimate, but a different claim in
     the proposal and a different row in the ablation table.
 
 So this script skips discovery entirely and asks the bars endpoint directly,
 using hand-built OCC symbols for past monthly expiries.
 
-OCC symbol format:  SPY + YYMMDD + C|P + strike x 1000, zero-padded to 8.
-    SPY 2024-06-21 540 call  ->  SPY240621C00540000
+OCC symbol format: SPY + YYMMDD + C|P + strike x 1000, zero-padded to 8.
+    SPY 2024-06-21 540 call -> SPY240621C00540000
 
-Run:  python3 probe_options_depth.py
+Run: python3 probe_options_depth.py
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def main() -> None:
     out: dict = {"expiries": {}}
 
     print("=" * 68)
-    print("Options historical depth — hand-built OCC symbols, no discovery")
+    print("Options historical depth - hand-built OCC symbols, no discovery")
     print("=" * 68)
 
     earliest = None
@@ -92,7 +92,7 @@ def main() -> None:
             if r.status_code != 200:
                 body = r.text[:200]
                 row[sym] = {"http": r.status_code, "message": body}
-                print(f"  {sym}   HTTP {r.status_code} — {body[:90]}")
+                print(f" {sym} HTTP {r.status_code} - {body[:90]}")
                 continue
             bars = (r.json().get("bars") or {}).get(sym) or []
             row[sym] = {"bars": len(bars)}
@@ -101,11 +101,11 @@ def main() -> None:
                 first = bars[0]["t"]
                 row[sym]["first_bar"] = first
                 earliest = earliest or first
-                print(f"  {sym}   {len(bars):>6,} bars   first: {first}")
+                print(f" {sym} {len(bars):>6,} bars first: {first}")
             else:
-                print(f"  {sym}   {'0':>6} bars   (endpoint OK, no data)")
+                print(f" {sym} {'0':>6} bars (endpoint OK, no data)")
         out["expiries"][expiry] = row
-        print(f"  -> {expiry}: {'DATA PRESENT' if hit else 'no data'}\n")
+        print(f" -> {expiry}: {'DATA PRESENT' if hit else 'no data'}\n")
 
     # Can expired contracts be enumerated at all, under any parameters?
     print("-" * 68)
@@ -121,25 +121,25 @@ def main() -> None:
         found = (r.json().get("option_contracts") or []) if r.status_code == 200 else []
         out["expired_discovery"] = {"http": r.status_code, "count": len(found),
                                     "body": None if found else r.text[:200]}
-        print(f"  HTTP {r.status_code} — {len(found)} contracts")
+        print(f" HTTP {r.status_code} - {len(found)} contracts")
         for c in found[:3]:
-            print(f"    {c.get('symbol')}  expiry {c.get('expiration_date')}")
+            print(f" {c.get('symbol')} expiry {c.get('expiration_date')}")
     except requests.RequestException as exc:
         out["expired_discovery"] = {"error": str(exc)}
-        print(f"  network error: {exc}")
+        print(f" network error: {exc}")
 
     out["earliest_option_bar"] = earliest
     print("\n" + "=" * 68)
     if earliest:
         print(f"VERDICT: options history EXISTS, earliest bar seen {earliest}")
-        print("  -> The --assets run's zeros were a discovery limitation, not")
-        print("     missing data. Options can be backtested; contracts must be")
-        print("     named via OCC symbology rather than enumerated.")
+        print(" -> The --assets run's zeros were a discovery limitation, not")
+        print(" missing data. Options can be backtested; contracts must be")
+        print(" named via OCC symbology rather than enumerated.")
     else:
         print("VERDICT: no historical option bars retrieved at any expiry.")
-        print("  -> Read the HTTP/message lines above. A subscription or")
-        print("     entitlement message means the options track is")
-        print("     PAPER-FORWARD ONLY — demonstrated live, never backtested.")
+        print(" -> Read the HTTP/message lines above. A subscription or")
+        print(" entitlement message means the options track is")
+        print(" PAPER-FORWARD ONLY - demonstrated live, never backtested.")
     print("=" * 68)
 
     with open("report_options_depth.json", "w") as f:

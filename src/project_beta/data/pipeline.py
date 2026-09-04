@@ -1,4 +1,4 @@
-"""Ingestion and validation — where vendor bars become a dataset we can defend.
+"""Ingestion and validation - where vendor bars become a dataset we can defend.
 
 This layer sits between `MarketDataProvider` (a pure reader, which by contract
 does no filtering and no repair) and everything downstream. It is the only
@@ -17,7 +17,7 @@ of every result computed after it (Outline §9, PRD §5.1).
 **2. A missing bar is a no-trade interval, never missing data.**
 Nothing here reindexes, forward-fills, interpolates or repairs. IEX carries a
 median 3.16% of consolidated volume, so 5-minute intervals with no IEX trades
-genuinely occur — 74-87 bars/day observed against a 78-bar maximum. Options
+genuinely occur - 74-87 bars/day observed against a 78-bar maximum. Options
 strikes are sparser still. A filled bar is a price that nobody could have
 traded at, and a fill against it is a fill that could not have happened
 (Outline §8, PRD §5.9).
@@ -115,7 +115,7 @@ def in_regular_session(ts: datetime) -> bool:
     last, and one stamped 16:00 belongs to the after-hours tape. Alpaca stamps
     bars with the interval's start, so the comparison is on the start.
 
-    Early closes come from the calendar, not from a constant — measuring a
+    Early closes come from the calendar, not from a constant - measuring a
     13:00 close against 16:00 would drop nothing but would make the day look
     46% covered, and nine such days a year is enough noise to hide a real gap.
     """
@@ -254,46 +254,46 @@ class ValidationReport:
                 f"{self.requested_start} to {self.requested_end}"
             ),
             (
-                f"  bars: {self.bars_in_session} in session "
+                f" bars: {self.bars_in_session} in session "
                 f"({self.bars_outside_session} filtered out of {self.bars_returned})"
             ),
         ]
         if self.sessions_expected:
             lines.append(
-                f"  sessions: {self.sessions_observed}/{self.sessions_expected} present, "
+                f" sessions: {self.sessions_observed}/{self.sessions_expected} present, "
                 f"{self.edge_days_excluded} edge days excluded"
             )
             if self.median_coverage is not None:
                 lines.append(
-                    f"  coverage: median {self.median_coverage:.1%}, "
+                    f" coverage: median {self.median_coverage:.1%}, "
                     f"min {self.min_coverage:.1%}"
                 )
         if self.flagged_days:
             lines.append(
-                f"  ⚠ {len(self.flagged_days)} day(s) below {COVERAGE_FLOOR:.0%} "
-                "coverage — review, not reject:"
+                f" ⚠ {len(self.flagged_days)} day(s) below {COVERAGE_FLOOR:.0%} "
+                "coverage - review, not reject:"
             )
             for c in self.flagged_days[:10]:
-                lines.append(f"      {c.day}  {c.observed}/{c.expected} ({c.ratio:.0%})")
+                lines.append(f" {c.day} {c.observed}/{c.expected} ({c.ratio:.0%})")
             if len(self.flagged_days) > 10:
-                lines.append(f"      ... and {len(self.flagged_days) - 10} more")
+                lines.append(f" ... and {len(self.flagged_days) - 10} more")
         if self.missing_sessions:
             absent = ", ".join(d.isoformat() for d in self.missing_sessions[:5])
             more = " ..." if len(self.missing_sessions) > 5 else ""
             lines.append(
-                f"  ⚠ {len(self.missing_sessions)} expected session(s) absent: {absent}{more}"
+                f" ⚠ {len(self.missing_sessions)} expected session(s) absent: {absent}{more}"
             )
         if self.unexpected_sessions:
             lines.append(
-                f"  ⚠ {len(self.unexpected_sessions)} session(s) the calendar did not "
+                f" ⚠ {len(self.unexpected_sessions)} session(s) the calendar did not "
                 "expect (a closure it does not know about, or a calendar bug): "
                 + ", ".join(d.isoformat() for d in self.unexpected_sessions[:5])
             )
         if self.misaligned_timestamps:
             lines.append(
-                f"  ⚠ {self.misaligned_timestamps} bar(s) off the {self.timeframe} grid"
+                f" ⚠ {self.misaligned_timestamps} bar(s) off the {self.timeframe} grid"
             )
-        lines.append(f"  dataset_hash: {self.dataset_hash}")
+        lines.append(f" dataset_hash: {self.dataset_hash}")
         return "\n".join(lines)
 
 
@@ -462,7 +462,7 @@ def read_parquet(path: str | Path) -> list[Bar]:
 
 
 def store_path(config: RunConfig, digest: str, root: str | Path = "data/processed") -> Path:
-    """Where a dataset lands. data/processed/ is gitignored — see §20.5."""
+    """Where a dataset lands. data/processed/ is gitignored - see §20.5."""
     d = config.data
     tag = d.feed or d.asset_class
     short = digest.split(":")[-1][:12]
@@ -485,7 +485,7 @@ def write_report(report: ValidationReport, path: str | Path) -> Path:
 
     PRD §5.1 requires a validation report per ingest. It is written as JSON
     rather than printed because the coverage figures have to be comparable
-    across ingests — "did this window degrade relative to the last one" is not
+    across ingests - "did this window degrade relative to the last one" is not
     a question you can ask of console output that scrolled away.
 
     It lands in `data/processed/`, which is gitignored: bar counts and session
@@ -565,7 +565,7 @@ def validate_bars(
             f"dataset_hash mismatch. The config pins {d.dataset_hash}; these "
             f"bars hash to {digest}. Either the vendor revised the window or "
             "the fetch parameters differ. Do not overwrite the pin to make "
-            "this pass — that is the check working."
+            "this pass - that is the check working."
         )
 
     return ValidationReport(
@@ -643,8 +643,8 @@ def main(argv: list[str] | None = None) -> int:
     result = ingest(config, provider)
     print(result.report.summary())
     if result.path:
-        print(f"  stored: {result.path}")
-        print(f"  report: {result.report_path}")
+        print(f" stored: {result.path}")
+        print(f" report: {result.report_path}")
     return 0 if result.report.is_clean else 1
 
 

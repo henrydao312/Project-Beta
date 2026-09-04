@@ -6,7 +6,7 @@ project's data covers rather than against the rules that generated them.
 
 The early-close cases carry the most weight. A 13:00 close is a complete
 session with 42 five-minute bars, and a calendar that thinks it should hold 78
-turns nine good days a year into coverage alerts — which is how real outages
+turns nine good days a year into coverage alerts - which is how real outages
 get lost in a list nobody reads any more.
 """
 
@@ -56,9 +56,9 @@ def test_juneteenth_is_absent_before_2022() -> None:
     A calendar that back-projects it would report every pre-2022 Juneteenth as
     a missing session across six years of the equity window.
     """
-    assert date(2021, 6, 18) not in holidays(2021)  # the Friday it would have moved to
+    assert date(2021, 6, 18) not in holidays(2021) # the Friday it would have moved to
     assert is_trading_day(date(2021, 6, 18))
-    assert not is_trading_day(date(2022, 6, 20))  # observed Monday, June 19 a Sunday
+    assert not is_trading_day(date(2022, 6, 20)) # observed Monday, June 19 a Sunday
 
 
 def test_new_years_day_on_saturday_closes_nothing() -> None:
@@ -89,9 +89,9 @@ def test_trading_day_counts_match_the_exchange() -> None:
 @pytest.mark.parametrize(
     "day",
     [
-        date(2024, 11, 29),  # day after Thanksgiving
-        date(2024, 7, 3),    # July 4 on a Thursday, so the 3rd is a half day
-        date(2024, 12, 24),  # Christmas Eve on a Tuesday
+        date(2024, 11, 29), # day after Thanksgiving
+        date(2024, 7, 3), # July 4 on a Thursday, so the 3rd is a half day
+        date(2024, 12, 24), # Christmas Eve on a Tuesday
         date(2026, 11, 27),
         date(2026, 12, 24),
     ],
@@ -135,5 +135,5 @@ def test_expected_bars_early_close() -> None:
 
 def test_expected_bars_is_zero_on_a_non_session() -> None:
     """Zero means 'no session here', and callers must not divide by it."""
-    assert expected_bars(date(2026, 12, 25), 5) == 0  # Christmas
-    assert expected_bars(date(2026, 8, 29), 5) == 0   # Saturday
+    assert expected_bars(date(2026, 12, 25), 5) == 0 # Christmas
+    assert expected_bars(date(2026, 8, 29), 5) == 0 # Saturday

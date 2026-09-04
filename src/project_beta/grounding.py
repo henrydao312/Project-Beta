@@ -1,10 +1,10 @@
-"""Grounding checker — machine verification that an explanation says nothing
+"""Grounding checker - machine verification that an explanation says nothing
 the decision record doesn't support.
 
 The explanation service may reference only fields present in its source
 DecisionRecord (PRD §5.11). That rule is worth little if the only thing
 enforcing it is a person reading fifty explanations at the end of a long week.
-This module does the mechanical part — every number, every state label — and
+This module does the mechanical part - every number, every state label - and
 surfaces the residue for human judgment rather than pretending to settle it.
 
 Two uses:
@@ -59,7 +59,7 @@ class GroundingReport:
     def summary(self) -> str:
         if self.grounded:
             return (
-                f"GROUNDED — {self.checked_numbers} numeric and "
+                f"GROUNDED - {self.checked_numbers} numeric and "
                 f"{self.checked_labels} label claims all trace to the record."
             )
         parts = []
@@ -67,7 +67,7 @@ class GroundingReport:
             parts.append(f"numbers not in record: {', '.join(self.ungrounded_numbers)}")
         if self.ungrounded_labels:
             parts.append(f"labels not in record: {', '.join(self.ungrounded_labels)}")
-        return "UNGROUNDED — " + "; ".join(parts)
+        return "UNGROUNDED - " + "; ".join(parts)
 
 
 # ------------------------------------------------------------------ extraction
@@ -80,7 +80,7 @@ def _walk(obj: Any):
     silently defeated the label check: `regime.probs` has keys "uptrend",
     "downtrend" and "choppy", so every regime name counted as permitted and a
     model could assert the wrong regime unchallenged. Only what the record
-    *asserts* — the value of `regime.label` — is a grounded claim; the others are
+    *asserts* - the value of `regime.label` - is a grounded claim; the others are
     just the shape of a probability distribution.
     """
     if isinstance(obj, dict):
@@ -98,7 +98,7 @@ def record_numbers(record: dict) -> set[float]:
     out: set[float] = set()
     for leaf in _walk(record):
         if isinstance(leaf, bool):
-            continue  # bool is an int subclass; not a numeric claim
+            continue # bool is an int subclass; not a numeric claim
         if isinstance(leaf, (int, float)):
             out.add(float(leaf))
     return out
@@ -135,9 +135,9 @@ def _matches(claim: float, precision: int, permitted: set[float]) -> bool:
     """Does `claim` correspond to some value in the record?
 
     Accepts three legitimate renderings of the same underlying value:
-      * the value itself                      0.64  → "0.64"
-      * the value as a percentage             0.72  → "72%"
-      * either, rounded to the stated precision  0.7234 → "72%" / "0.72"
+      * the value itself 0.64 → "0.64"
+      * the value as a percentage 0.72 → "72%"
+      * either, rounded to the stated precision 0.7234 → "72%" / "0.72"
     """
     for value in permitted:
         for candidate in (value, value * 100.0):
@@ -210,13 +210,13 @@ def enforce_grounding(explanation: str, record: dict, **kwargs: Any) -> str:
     """Output filter: return the explanation, or raise if it is not grounded.
 
     Wrap the explanation service's return value in this. An explanation that
-    fails here must never reach a user or a stored record — by the time a human
+    fails here must never reach a user or a stored record - by the time a human
     is reading it, over-trust has already had its opportunity.
     """
     report = check_explanation(explanation, record, **kwargs)
     if not report.grounded:
         raise GroundingError(
             f"{report.summary()}\nExplanation: {explanation!r}\n"
-            "See PRD §5.11 — a hallucinated claim is a release blocker."
+            "See PRD §5.11 - a hallucinated claim is a release blocker."
         )
     return explanation

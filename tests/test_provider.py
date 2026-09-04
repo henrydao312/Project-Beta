@@ -5,7 +5,7 @@ Two of these matter more than the rest.
 `test_a_second_adapter_satisfies_the_protocol` is what proves the seam is real
 rather than decorative: if only one class can satisfy the interface, the
 interface is Alpaca with extra steps, and the post-course vendor swap
-(Upgrade_Path §2.1) is a rewrite rather than a configuration change.
+(Outline §7B seam 1) is a rewrite rather than a configuration change.
 
 `test_unsupported_capabilities_raise_rather_than_return_empty` is what keeps a
 vendor limit from turning into a market observation. An empty quote list flows

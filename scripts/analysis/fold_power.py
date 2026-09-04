@@ -9,14 +9,14 @@ can support.
 Two constraints bind a walk-forward scheme, and they pull in opposite
 directions:
 
-  TRAIN window — bound by *regime coverage*, not sample size. At 78 RTH bars a
+  TRAIN window - bound by *regime coverage*, not sample size. At 78 RTH bars a
   day, even an 18-month window holds ~29,000 bars, far more than a gradient
   boosted tree needs for a dozen features. What a short window cannot give is
   variety: market regimes turn over on a scale of months to years, and an
   18-month window can sit entirely inside one. A classifier trained on one
   regime has nothing to say about the others, which defeats the point of M1.
 
-  TEST windows — bound by estimation error on the headline comparison. Sharpe
+  TEST windows - bound by estimation error on the headline comparison. Sharpe
   measured over n days has standard error roughly sqrt(252/n), so a single
   6-month fold carries SE ~1.4 on an annualised Sharpe. Only the *pooled*
   out-of-sample record is informative, and because M2 is a filtered subset of
@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import math
 
-BARS_PER_DAY = 78  # 5-minute bars in a regular session
+BARS_PER_DAY = 78 # 5-minute bars in a regular session
 DAYS_PER_MONTH = 21
 TRADING_DAYS_YEAR = 252
 
@@ -89,14 +89,14 @@ def se_sharpe_difference(n_days: int, rho: float = 0.90) -> float:
 # two claims have different estimators, and the estimators need different
 # amounts of data by an order of magnitude.
 #
-#   A Sharpe difference is estimated from a noisy ratio of moments, and its
-#   error falls as 1/sqrt(days). Six months of daily returns gives 126
-#   observations, which is nothing.
+# A Sharpe difference is estimated from a noisy ratio of moments, and its
+# error falls as 1/sqrt(days). Six months of daily returns gives 126
+# observations, which is nothing.
 #
-#   A fill-feasibility rate is a proportion. Its error falls as
-#   1/sqrt(selections), and a 6-month window holds hundreds of selections
-#   rather than 126 daily returns, because several candidates can occur in a
-#   single session.
+# A fill-feasibility rate is a proportion. Its error falls as
+# 1/sqrt(selections), and a 6-month window holds hundreds of selections
+# rather than 126 daily returns, because several candidates can occur in a
+# single session.
 #
 # So the same held-out window that cannot distinguish a real edge from noise
 # can pin a fill rate to a few percentage points. The tier structure is a
@@ -112,30 +112,30 @@ def options_claim_power() -> None:
     print()
     print("The options held-out window: 6 months, two different questions")
     print()
-    print("  As a PERFORMANCE claim (Sharpe difference, daily returns):")
+    print(" As a PERFORMANCE claim (Sharpe difference, daily returns):")
     n_days = 6 * DAYS_PER_MONTH
     sed = se_sharpe_difference(n_days)
-    print(f"    {n_days} observations, SE = {sed:.2f}, "
+    print(f" {n_days} observations, SE = {sed:.2f}, "
           f"min detectable = {2 * sed:.2f} Sharpe")
-    print("    Nothing this project could plausibly find is that large.")
+    print(" Nothing this project could plausibly find is that large.")
     print()
-    print("  As a CAPABILITY claim (fill-feasibility rate, per selection):")
-    print(f"    {'candidates/day':>16}{'selections':>12}{'95% CI':>12}")
+    print(" As a CAPABILITY claim (fill-feasibility rate, per selection):")
+    print(f" {'candidates/day':>16}{'selections':>12}{'95% CI':>12}")
     for per_day in (1, 2, 3, 5):
         n = int(6 * DAYS_PER_MONTH * per_day)
         hw = proportion_ci_halfwidth(n)
-        print(f"    {per_day:>16}{n:>12}{'+/- ' + format(100 * hw, '.1f') + ' pp':>12}")
-    print("    A fill rate reported to within a few points is a real result.")
+        print(f" {per_day:>16}{n:>12}{'+/- ' + format(100 * hw, '.1f') + ' pp':>12}")
+    print(" A fill rate reported to within a few points is a real result.")
     print()
-    print("  Proposed three-way split across the 31 months (2024-01-18 to 2026-08):")
-    print("    fit       2024-01-18 to 2025-08-31   ~19 months")
-    print("    validate  2025-09-01 to 2026-02-28   ~6 months")
-    print("    test      2026-03-01 to 2026-08-31   ~6 months, opened once")
-    print("  Legitimate because the selection rule has four scalar parameters,")
-    print("  not a learned model. Sample-size requirements scale with what is")
-    print("  being fitted. This is also stricter than the current plan, which")
-    print("  fits on ~25 months and tests on ~6 with no validation window, and")
-    print("  therefore picks its thresholds on the window it reports.")
+    print(" Proposed three-way split across the 31 months (2024-01-18 to 2026-08):")
+    print(" fit 2024-01-18 to 2025-08-31 ~19 months")
+    print(" validate 2025-09-01 to 2026-02-28 ~6 months")
+    print(" test 2026-03-01 to 2026-08-31 ~6 months, opened once")
+    print(" Legitimate because the selection rule has four scalar parameters,")
+    print(" not a learned model. Sample-size requirements scale with what is")
+    print(" being fitted. This is also stricter than the current plan, which")
+    print(" fits on ~25 months and tests on ~6 with no validation window, and")
+    print(" therefore picks its thresholds on the window it reports.")
 
 
 def main() -> int:
@@ -185,13 +185,13 @@ def main() -> int:
     oos = folds * 6
     n = oos * DAYS_PER_MONTH
     sed = se_sharpe_difference(n)
-    print(f"  {folds} fold, {oos} out-of-sample months, {n} observations")
-    print(f"  SE(dSharpe) = {sed:.2f}, min detectable difference = {2 * sed:.2f} Sharpe")
-    print("  One fold is not walk-forward. It is a single train/test split, which")
-    print("  is what the validated execution layer already is and already says.")
-    print("  A detectable threshold above 1.2 Sharpe exceeds any effect this")
-    print("  project could plausibly find, so the fold could only ever confirm")
-    print("  the null. And its test window sits inside one broad regime.")
+    print(f" {folds} fold, {oos} out-of-sample months, {n} observations")
+    print(f" SE(dSharpe) = {sed:.2f}, min detectable difference = {2 * sed:.2f} Sharpe")
+    print(" One fold is not walk-forward. It is a single train/test split, which")
+    print(" is what the validated execution layer already is and already says.")
+    print(" A detectable threshold above 1.2 Sharpe exceeds any effect this")
+    print(" project could plausibly find, so the fold could only ever confirm")
+    print(" the null. And its test window sits inside one broad regime.")
 
     options_claim_power()
 
@@ -200,7 +200,7 @@ def main() -> int:
     n_eq = fold_count(123, 30, 6, 6, 6) * 6 * DAYS_PER_MONTH
     for rho in (0.99, 0.95, 0.90, 0.80, 0.50):
         sed = se_sharpe_difference(n_eq, rho)
-        print(f"  rho={rho:<5} SE(dSR)={sed:.3f}   min detectable={2 * sed:.2f}")
+        print(f" rho={rho:<5} SE(dSR)={sed:.3f} min detectable={2 * sed:.2f}")
     print()
     print("Caveat that matters for the write-up: these use daily returns of a")
     print("strategy assumed to be in the market throughout. A strategy holding")

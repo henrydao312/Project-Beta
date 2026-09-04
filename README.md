@@ -1,16 +1,16 @@
 # PROJECT BETA
 
-**An AI-assisted paper-trading system that filters a transparent, rule-based strategy — and gives a checkable reason for every trade it takes or refuses.**
+**An AI-assisted paper-trading system that filters a transparent, rule-based strategy - and gives a checkable reason for every trade it takes or refuses.**
 
 > ⚠️ **Paper trading only. Not investment advice.** No real money is at risk at any point. There is no live-money code path in this repository, and a test enforces its absence.
 
-AI Capstone (CIS 5980), Penn Engineering — Fall 2026. Two-person team: Henry Dao and Jacky.
+AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Two-person team: Henry Dao and Jacky.
 
 ---
 
 ## What it does
 
-A fixed, readable momentum-breakout rule proposes candidate trades on 5-minute SPY bars. Two machine-learning models then judge the *context* — what market regime we're in, and how likely this particular signal is to work out — and a deterministic risk engine enforces hard limits. Every decision is written to an append-only log, and a language model turns each logged record into a plain-English explanation that can be checked field by field against what the system actually stored.
+A fixed, readable momentum-breakout rule proposes candidate trades on 5-minute SPY bars. Two machine-learning models then judge the *context* - what market regime we're in, and how likely this particular signal is to work out - and a deterministic risk engine enforces hard limits. Every decision is written to an append-only log, and a language model turns each logged record into a plain-English explanation that can be checked field by field against what the system actually stored.
 
 **The AI never decides a trade.** It classifies and scores; a documented rule combines those into approve / reduce / delay / reject; the risk engine can override all of it. That constraint is the point of the project, not a limitation of it.
 
@@ -20,11 +20,11 @@ A fixed, readable momentum-breakout rule proposes candidate trades on 5-minute S
 git clone <repo-url> && cd project-beta
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                                   # should be green
-python -m project_beta.config configs/example_backtest.yaml   # validate a run config
+pytest # should be green
+python -m project_beta.config configs/example_backtest.yaml # validate a run config
 ```
 
-Five minutes, no API keys needed. Keys are only required once you fetch data — see below.
+Five minutes, no API keys needed. Keys are only required once you fetch data - see below.
 
 ## Installation and usage
 
@@ -33,18 +33,18 @@ Five minutes, no API keys needed. Keys are only required once you fetch data —
 **Credentials.** Market data and paper trading need Alpaca API keys. Never commit them.
 
 ```bash
-cp .env.example .env    # then edit; .env is gitignored
+cp .env.example .env # then edit; .env is gitignored
 chmod 600 .env
 source .env
 ```
 
-**Getting the data.** See the licensing note below — the dataset is deliberately not in this repository.
+**Getting the data.** See the licensing note below - the dataset is deliberately not in this repository.
 
 ## Data: why the dataset isn't here
 
 Alpaca's Terms & Conditions and Customer Agreement §30 both prohibit reproducing or redistributing market data. This repository therefore ships:
 
-- a **small sample fixture** under `data/fixtures/` — enough to run the tests and demonstrate the pipeline,
+- a **small sample fixture** under `data/fixtures/` - enough to run the tests and demonstrate the pipeline,
 - a **documented re-fetch script** that rebuilds the full dataset from your own Alpaca account,
 - the **`dataset_hash`** for each published result, so a reproduction can be *verified* without the data ever being redistributed.
 
@@ -57,18 +57,18 @@ A fresh clone plus a legitimately-obtained dataset matching the recorded hash re
 Two of the project's safety commitments are enforced in code from week one, before the
 features they protect exist:
 
-- **Grounding** (`src/project_beta/grounding.py`) — every number and state label in a
+- **Grounding** (`src/project_beta/grounding.py`) - every number and state label in a
   generated explanation must trace to a field in its source decision record. Used as an
   output filter at generation time and as the mechanical half of the release audit.
   Prose is left to human review, deliberately.
-- **Repo hygiene** (`tests/test_guardrails.py`) — no market data outside a size-capped
+- **Repo hygiene** (`tests/test_guardrails.py`) - no market data outside a size-capped
   fixture directory, no credentials, and the paper-trading disclaimer must be present.
 
 ## Architecture
 
 | Layer | What's in it |
 |---|---|
-| **Frontend** | Local browser dashboard — decision feed, equity curve, positions, halt control, replay mode |
+| **Frontend** | Local browser dashboard - decision feed, equity curve, positions, halt control, replay mode |
 | **Backend** | Data pipeline · features · strategy engine · trade decision engine · risk engine + halt control · execution · decision log · evaluation harness. **Fully deterministic; no AI in the trade decision path** |
 | **AI layer** | Regime classifier and signal-quality model (local, classical ML) · explanation service and failure-analysis narrative (hosted LLM, reads the decision log only) |
 
@@ -84,4 +84,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Participation is governed by our [Code o
 
 ## License
 
-[MIT](LICENSE). Note that the licence covers **this code only** — market data obtained through it remains subject to your data provider's terms, and is not redistributable.
+[MIT](LICENSE). Note that the licence covers **this code only** - market data obtained through it remains subject to your data provider's terms, and is not redistributable.

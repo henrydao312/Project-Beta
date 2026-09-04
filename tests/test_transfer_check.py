@@ -2,8 +2,8 @@
 
 The experiment itself needs the network and a live entitlement, so it runs on
 Henry's machine and not in CI. That is exactly why its arithmetic is tested
-here against synthetic bars: the parts that can be wrong quietly — the RTH
-filter, the trailing baselines, the verdict thresholds — must not first be
+here against synthetic bars: the parts that can be wrong quietly - the RTH
+filter, the trailing baselines, the verdict thresholds - must not first be
 exercised on a run that takes half an hour and produces a number nobody can
 check by eye.
 
@@ -41,7 +41,7 @@ def _synthetic(days: int = 40, scale: float = 1.0, seed: int = 0,
     """Sessions of 5-minute bars with a U-shaped intraday volume profile."""
     rng = np.random.default_rng(seed)
     rows = []
-    day = datetime(2024, 1, 2, 14, 30, tzinfo=timezone.utc)  # 09:30 ET
+    day = datetime(2024, 1, 2, 14, 30, tzinfo=timezone.utc) # 09:30 ET
     for d in range(days):
         start = day + timedelta(days=d)
         if start.weekday() >= 5:
@@ -69,9 +69,9 @@ def test_rth_filter_drops_extended_hours_and_weekends() -> None:
     feature computation is a quiet source of inflated backtests."""
     df = _synthetic(days=5)
     overnight = df.iloc[:3].copy()
-    overnight["timestamp"] = overnight["timestamp"] - timedelta(hours=5)  # pre-market
+    overnight["timestamp"] = overnight["timestamp"] - timedelta(hours=5) # pre-market
     weekend = df.iloc[:3].copy()
-    weekend["timestamp"] = weekend["timestamp"] + timedelta(days=5)  # Saturday
+    weekend["timestamp"] = weekend["timestamp"] + timedelta(days=5) # Saturday
     padded = pd.concat([df, overnight, weekend], ignore_index=True)
     padded["timestamp"] = pd.to_datetime(padded["timestamp"], utc=True)
 

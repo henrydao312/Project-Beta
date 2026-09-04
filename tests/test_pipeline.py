@@ -122,7 +122,7 @@ def _config(
 
 
 class _FakeProvider:
-    """Serves a fixed list of bars, unfiltered — the provider contract (§3B.1).
+    """Serves a fixed list of bars, unfiltered - the provider contract (§3B.1).
 
     Deliberately raises NotSupported for quotes and chains rather than
     returning empty lists, so a test that leans on the pipeline degrading
@@ -215,9 +215,9 @@ def test_naive_timestamps_are_read_as_utc() -> None:
     session boundary by the host's offset and silently change what is kept."""
     naive = _bar(datetime(2026, 8, 28, 14, 0, tzinfo=timezone.utc))
     naive = Bar(**{**naive.__dict__, "timestamp": datetime(2026, 8, 28, 14, 0)})
-    assert in_regular_session(naive.timestamp)  # 10:00 ET
+    assert in_regular_session(naive.timestamp) # 10:00 ET
     off_hours = Bar(**{**naive.__dict__, "timestamp": datetime(2026, 8, 28, 8, 0)})
-    assert not in_regular_session(off_hours.timestamp)  # 04:00 ET
+    assert not in_regular_session(off_hours.timestamp) # 04:00 ET
 
 
 def test_dst_boundary_is_handled_in_market_time() -> None:
@@ -226,8 +226,8 @@ def test_dst_boundary_is_handled_in_market_time() -> None:
     A filter written against a fixed UTC window would drop the first hour of
     every summer session, or admit an hour of pre-market every winter one.
     """
-    winter_open = datetime(2026, 1, 5, 14, 30, tzinfo=timezone.utc)   # 09:30 EST
-    summer_open = datetime(2026, 7, 6, 13, 30, tzinfo=timezone.utc)   # 09:30 EDT
+    winter_open = datetime(2026, 1, 5, 14, 30, tzinfo=timezone.utc) # 09:30 EST
+    summer_open = datetime(2026, 7, 6, 13, 30, tzinfo=timezone.utc) # 09:30 EDT
     assert in_regular_session(winter_open)
     assert in_regular_session(summer_open)
     assert not in_regular_session(datetime(2026, 7, 6, 12, 30, tzinfo=timezone.utc))
@@ -235,7 +235,7 @@ def test_dst_boundary_is_handled_in_market_time() -> None:
 
 def test_crypto_continuous_session_filters_nothing() -> None:
     """BTC/USD trades 24/7; an RTH window there would discard most of the data."""
-    raw = _day_of_bars(date(2026, 8, 29))  # a Saturday
+    raw = _day_of_bars(date(2026, 8, 29)) # a Saturday
     assert filter_session(raw, "continuous") == raw
 
 
@@ -251,7 +251,7 @@ def test_extended_session_is_refused_rather_than_aliased() -> None:
 def test_sparse_session_is_flagged_but_never_filled() -> None:
     """The no-trade-interval rule (Outline §8, PRD §5.9).
 
-    An IEX day of 74 bars against a 78-bar maximum is normal — the feed carries
+    An IEX day of 74 bars against a 78-bar maximum is normal - the feed carries
     ~3% of consolidated volume. The pipeline reports the shortfall and returns
     74 bars. Returning 78 would mean four prices that no trade ever set.
     """
@@ -320,7 +320,7 @@ def test_no_assertion_of_exactly_78_bars() -> None:
     property of the feed, not an error condition.
     """
     bars: list[Bar] = []
-    for offset in range(1, 4):  # Tue-Thu, interior days only
+    for offset in range(1, 4): # Tue-Thu, interior days only
         bars += _rth_day(WEEK_START + timedelta(days=offset), skip={(11, 0), (11, 5)})
     report = validate_bars(sorted(bars, key=lambda b: b.timestamp),
                            config=_config(), raw_count=len(bars))
@@ -358,7 +358,7 @@ def test_a_session_the_calendar_did_not_expect_is_surfaced() -> None:
     is not authoritative over the data.
     """
     bars = sorted(
-        _rth_day(date(2026, 8, 25)) + _rth_day(date(2026, 8, 29)),  # a Saturday
+        _rth_day(date(2026, 8, 25)) + _rth_day(date(2026, 8, 29)), # a Saturday
         key=lambda b: b.timestamp,
     )
     kept = filter_session(bars, "rth_only")
@@ -446,8 +446,8 @@ def test_identical_inputs_produce_an_identical_hash() -> None:
 def test_the_hash_distinguishes_the_feed() -> None:
     """The same window on SIP and on IEX is two datasets, not one.
 
-    A hash blind to this would let a feed mismatch — the project's largest
-    open data risk (§5.2) — pass a reproduction check unnoticed.
+    A hash blind to this would let a feed mismatch - the project's largest
+    open data risk (§5.2) - pass a reproduction check unnoticed.
     """
     bars = _rth_day(date(2026, 8, 25))
     kw = {"symbol": "SPY", "timeframe": "5Min", "asset_class": "equity",

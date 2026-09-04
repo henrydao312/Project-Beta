@@ -1,7 +1,7 @@
 """RunConfig validation tests.
 
-These are the smoke tests the CI lecture asks for — "does the thing even load?"
-— plus the negative cases that make them worth having. A test that only checks
+These are the smoke tests the CI lecture asks for - "does the thing even load?"
+ - plus the negative cases that make them worth having. A test that only checks
 the happy path would pass against a validator that accepts everything.
 """
 
@@ -132,7 +132,7 @@ def test_halt_thresholds_must_be_positive() -> None:
 
 def test_regime_abstain_defaults_to_empty_and_accepts_regimes() -> None:
     """The fairness mitigation (Outline §20.3) is configuration, set from
-    evidence after M2 calibration — not a hard-coded behaviour."""
+    evidence after M2 calibration - not a hard-coded behaviour."""
     assert _config().risk.regime_abstain == []
     cfg = _config(risk={"regime_abstain": ["choppy"]})
     cfg.validate()
@@ -148,7 +148,7 @@ def test_missing_required_field_is_reported_clearly(tmp_path: Path) -> None:
 
 # ------------------------------------------------- asset-class parameterisation
 #
-# Added with seam 2 (Upgrade_Path §2.2). The tier a track is allowed to claim is
+# Added with seam 2 (Outline §7B seam 2). The tier a track is allowed to claim is
 # set by measured history, so the config layer is where that arithmetic gets
 # enforced rather than remembered.
 

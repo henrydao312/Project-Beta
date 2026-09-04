@@ -41,7 +41,7 @@ DATA_HOST = "https://data.alpaca.markets"
 PAPER_TRADING_HOST = "https://paper-api.alpaca.markets"
 
 # Basic tier: 200 requests/minute. Pace below the limit rather than discovering
-# it through 429s — a burst that trips the limiter costs more than it saves.
+# it through 429s - a burst that trips the limiter costs more than it saves.
 MIN_SECONDS_BETWEEN_REQUESTS = 0.32
 MAX_RETRIES = 5
 PAGE_LIMIT = 10_000
@@ -290,7 +290,7 @@ class AlpacaProvider:
                     expiry=expiry,
                     strike=float(row["strike_price"]),
                     right="call" if row["type"] == "call" else "put",
-                    status=status,  # type: ignore[arg-type]
+                    status=status, # type: ignore[arg-type]
                 )
             )
         return out

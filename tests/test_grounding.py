@@ -1,10 +1,10 @@
-"""Tests for the grounding checker — including deliberate hallucinations.
+"""Tests for the grounding checker - including deliberate hallucinations.
 
 A grounding checker that only sees correct explanations is worthless. Most of
 these tests feed it fabricated claims and assert it catches them.
 
 The explanation service doesn't exist yet. Building the guardrail first means it
-is waiting for the feature rather than trailing it — and the synthetic cases
+is waiting for the feature rather than trailing it - and the synthetic cases
 below are a specification of what the service may and may not say.
 """
 
@@ -44,9 +44,9 @@ RECORD = {
 
 def test_record_numbers_reaches_nested_values() -> None:
     numbers = record_numbers(RECORD)
-    assert 0.72 in numbers  # regime.probs.uptrend
-    assert 552.35 in numbers  # execution.fill_price
-    assert 0.031 in numbers  # risk.drawdown_state
+    assert 0.72 in numbers # regime.probs.uptrend
+    assert 552.35 in numbers # execution.fill_price
+    assert 0.031 in numbers # risk.drawdown_state
 
 
 def test_record_labels_collects_states_and_reason_codes() -> None:
@@ -55,7 +55,7 @@ def test_record_labels_collects_states_and_reason_codes() -> None:
     assert "approved" in labels
     assert "low" in labels
     assert "regime_permits" in labels
-    assert "downtrend" not in labels  # a probability key, not an asserted state
+    assert "downtrend" not in labels # a probability key, not an asserted state
 
 
 # ------------------------------------------------------------- grounded cases
@@ -63,7 +63,7 @@ def test_record_labels_collects_states_and_reason_codes() -> None:
 
 def test_a_faithful_explanation_passes() -> None:
     text = (
-        "Approved — uptrend regime (72%), signal quality 0.64, "
+        "Approved - uptrend regime (72%), signal quality 0.64, "
         "no active risk constraints. Filled at 552.35."
     )
     report = check_explanation(text, RECORD)
@@ -91,14 +91,14 @@ def test_summary_reports_what_was_checked() -> None:
 
 def test_a_fabricated_price_is_caught() -> None:
     """The model invents a fill price that never happened."""
-    report = check_explanation("Approved — filled at 561.90.", RECORD)
+    report = check_explanation("Approved - filled at 561.90.", RECORD)
     assert not report.grounded
     assert "561.90" in report.ungrounded_numbers
 
 
 def test_a_wrong_regime_label_is_caught() -> None:
     """The record says uptrend; the explanation says choppy."""
-    report = check_explanation("Rejected — choppy regime.", RECORD)
+    report = check_explanation("Rejected - choppy regime.", RECORD)
     assert not report.grounded
     assert "choppy" in report.ungrounded_labels
 
@@ -129,7 +129,7 @@ def test_multiple_hallucinations_are_all_reported() -> None:
 
 
 def test_enforce_grounding_returns_a_faithful_explanation() -> None:
-    text = "Approved — uptrend regime (72%), signal quality 0.64."
+    text = "Approved - uptrend regime (72%), signal quality 0.64."
     assert enforce_grounding(text, RECORD) == text
 
 
@@ -150,11 +150,11 @@ def test_small_integer_suppression_is_off_by_default() -> None:
     strict = check_explanation("Three filters agreed.", RECORD)
     relaxed = check_explanation("Three filters agreed.", RECORD, ignore_small_integers=True)
     assert relaxed.grounded
-    # "Three" is a word, not a numeral, so nothing is flagged either way here —
+    # "Three" is a word, not a numeral, so nothing is flagged either way here - 
     # the meaningful case is numerals:
     assert not check_explanation("2 filters agreed.", RECORD).grounded
     assert check_explanation("2 filters agreed.", RECORD, ignore_small_integers=True).grounded
-    assert strict.grounded  # no numerals present
+    assert strict.grounded # no numerals present
 
 
 def test_unverifiable_prose_is_not_flagged() -> None:
@@ -189,7 +189,7 @@ def test_canary_explanation_still_mentions_the_key_state() -> None:
     """
     pytest.skip("enable once the explanation service exists (PRD §5.11)")
 
-    # generated = explanation_service.explain(CANARY_RECORD)   # noqa: ERA001
-    # assert enforce_grounding(generated, CANARY_RECORD)       # noqa: ERA001
-    # for value in CANARY_EXPECTED_VALUES:                     # noqa: ERA001
-    #     assert value in generated.lower()                    # noqa: ERA001
+    # generated = explanation_service.explain(CANARY_RECORD) # noqa: ERA001
+    # assert enforce_grounding(generated, CANARY_RECORD) # noqa: ERA001
+    # for value in CANARY_EXPECTED_VALUES: # noqa: ERA001
+    # assert value in generated.lower() # noqa: ERA001
