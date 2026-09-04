@@ -1,0 +1,13 @@
+# Review routing. Advisory on this plan, since branch protection is not
+# enforceable on a private repository, but GitHub still auto-requests the
+# review, which is most of the value.
+
+# Default: Henry reviews everything.
+*                       @henrydao312
+
+# Critical path. Changes here need Henry's review without exception.
+/src/project_beta/      @henrydao312
+/tests/                 @henrydao312
+/configs/               @henrydao312
+/DECISIONS.md           @henrydao312
+/EVALUATION_PROTOCOL.md @henrydao312
