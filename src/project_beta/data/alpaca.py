@@ -128,7 +128,7 @@ class AlpacaProvider:
         """One GET, with backoff. Auth failures raise immediately, never retry."""
         delay = 1.0
         last_status = None
-        for attempt in range(MAX_RETRIES):
+        for _attempt in range(MAX_RETRIES):
             self._throttle()
             resp = self._session.get(
                 url, params=params, headers=self._headers(), timeout=30

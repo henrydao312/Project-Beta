@@ -19,7 +19,9 @@ from project_beta.config import (
     DataConfig,
     ExecutionConfig,
     HaltConfig,
+    ModelsConfig,
     OptionSelectionConfig,
+    RegimeLabelConfig,
     RiskConfig,
     RunConfig,
     WalkForwardConfig,
@@ -55,6 +57,7 @@ def _config(**overrides) -> RunConfig:
         risk=RiskConfig(**risk_kwargs),
         walk_forward=WalkForwardConfig(**overrides.pop("walk_forward", {})),
         execution=overrides.pop("execution", ExecutionConfig()),
+        models=overrides.pop("models", ModelsConfig()),
     )
 
 
@@ -300,3 +303,90 @@ def test_the_walk_forward_scheme_reserves_a_validation_window() -> None:
     wf = WalkForwardConfig()
     assert wf.validation_months > 0
     assert wf.months_per_fold == 42
+
+
+# ------------------------------------------- model hyperparameters (2026-09-04)
+
+
+def test_a_different_label_horizon_is_a_different_run() -> None:
+    """The gap this block was added to close.
+
+    `horizon_bars`, `trend_k` and `vol_k` change every regime label, therefore
+    every M1 and M2 number. They were module defaults until 2026-09-04, which
+    meant two runs whose results could not be compared produced identical
+    `config_hash` values - and a provenance system that cannot tell those runs
+    apart is not a provenance system.
+    """
+    base = _config()
+    for changed in (
+        ModelsConfig(labels=RegimeLabelConfig(horizon_bars=39)),
+        ModelsConfig(labels=RegimeLabelConfig(trend_k=1.0)),
+        ModelsConfig(labels=RegimeLabelConfig(vol_k=1.5)),
+        ModelsConfig(permitted_regimes=("uptrend", "choppy")),
+        ModelsConfig(high_vol_size=1.0),
+        ModelsConfig(regime_l2=5.0),
+        ModelsConfig(signal_quality_l2=5.0),
+        ModelsConfig(min_validation_trades=50),
+    ):
+        assert _config(models=changed).config_hash() != base.config_hash(), changed
+
+
+def test_provenance_carries_the_model_parameters() -> None:
+    """A results row has to say what produced it, not just which code ran."""
+    p = _config().provenance()
+    assert p["label_horizon_bars"] == 78
+    assert p["label_trend_k"] == 0.5
+    assert p["label_vol_k"] == 1.15
+    assert p["permitted_regimes"] == ["uptrend"]
+    assert p["high_vol_size"] == 0.5
+
+
+def test_an_empty_permitted_regime_list_is_refused() -> None:
+    """M1 would reject every candidate, and the rung would measure abstention
+    rather than the classifier."""
+    with pytest.raises(ConfigError, match="permitted_regimes is empty"):
+        _config(models=ModelsConfig(permitted_regimes=())).validate()
+
+
+def test_an_unknown_regime_name_is_refused() -> None:
+    """It would permit nothing and look exactly like a model that rejects
+    everything."""
+    with pytest.raises(ConfigError, match="unknown states"):
+        _config(models=ModelsConfig(permitted_regimes=("sideways",))).validate()
+
+
+def test_a_gate_that_could_enlarge_is_refused_at_config_time() -> None:
+    with pytest.raises(ConfigError, match=r"\[0, 1\]"):
+        _config(models=ModelsConfig(high_vol_size=1.5)).validate()
+
+
+def test_a_zero_label_horizon_is_refused() -> None:
+    """It is also the embargo length; zero would leave labels that read the
+    validation window inside the training set."""
+    with pytest.raises(ConfigError, match="horizon_bars must be positive"):
+        _config(models=ModelsConfig(labels=RegimeLabelConfig(horizon_bars=0))).validate()
+
+
+def test_the_example_config_declares_its_model_parameters() -> None:
+    config = load_run_config(EXAMPLE)
+    assert config.models.labels.horizon_bars == 78
+    assert config.models.permitted_regimes == ("uptrend",)
+    assert config.models.min_validation_trades == 20
+
+
+# ------------------------------------------------------- the cost multiplier
+
+
+def test_the_cost_multiplier_is_part_of_the_run_identity() -> None:
+    """EVALUATION_PROTOCOL §9's stress runs are the same code path at a
+    different price. They must not share a hash with the headline run."""
+    base = _config()
+    stressed = _config(execution=ExecutionConfig(cost_multiplier=2.0))
+    assert base.config_hash() != stressed.config_hash()
+    assert stressed.provenance()["cost_multiplier"] == 2.0
+
+
+def test_a_zero_cost_multiplier_is_refused() -> None:
+    """It would report a frictionless result as if it were the headline one."""
+    with pytest.raises(ConfigError, match="cost_multiplier must be positive"):
+        _config(execution=ExecutionConfig(cost_multiplier=0.0)).validate()
