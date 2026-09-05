@@ -1,4 +1,4 @@
-# PROJECT BETA - Project Outline (Revision 11)
+# PROJECT BETA - Project Outline (Revision 12)
 
 **AI Capstone (CIS 5980) - AI Engineering Track - Two-person team: Henry Dao and Jacky**
 
@@ -11,6 +11,21 @@ Revisions 2–7 established scope, the multi-strategy architecture, the Product 
 3. **§9 data architecture completed.** All eight verification questions closed at **$0**. The decisive one: the IEX free tier is **genuinely real-time** and its **streaming is entitled**, so Milestone 3 needs no paid data tier.
 4. **New §9C - the scheduled-execution constraint.** macOS TCC blocks launchd agents from privacy-protected folders. This is an M3 architecture requirement, discovered by a failed scheduled run.
 5. **New §7B - the post-course upgrade path.** Options cannot be graded on 31 months of history; the architecture is built so that lifting the constraint later is a bounded job rather than a rewrite.
+
+**Revision 12 (2026-09-05) - three corrections after the first graded run.** The
+build is ahead of this document in three places. In each one the code is right
+and the text was wrong, so the text moves:
+
+1. **§5.1 labels are forward-looking, not contemporaneous.** Read literally, the
+   old wording described a label computed from the same bar's features, which
+   would have made M1 a model trained to reproduce an `if` statement. The
+   implemented rule is still transparent but looks forward one session, and it
+   carries a mandatory training-window embargo.
+2. **§5.1 model roster corrected.** Logistic regression exists and is
+   hand-written. Random forest, XGBoost and the HMM comparison do not exist.
+3. **§5.2 volume verdict closed.** The feed-transfer experiment ran 2026-09-02,
+   measured Spearman 0.57 against a pre-committed 0.70 bar, and resolved to
+   DROP. It was the last open data-side risk and it is no longer open.
 
 ---
 
@@ -93,9 +108,13 @@ For the frontend / backend / AI-layer view the M1 Design Checklist asks for, see
 
 ### 5.1 Market-Regime Classifier (required - M1)
 
-**Labeling scheme:** 3 trend states - uptrend / downtrend / choppy - from transparent rules on MA slope and realized-return thresholds, plus a separate binary volatility flag. Rationale: crossed classes on a short-bar history produce thin, noisy labels; 3+1 keeps classes populated and interpretable.
+**Labeling scheme:** 3 trend states - uptrend / downtrend / choppy - from a transparent rule, plus a separate binary volatility flag. Rationale: crossed classes on a short-bar history produce thin, noisy labels; 3+1 keeps classes populated and interpretable.
 
-**Models:** logistic regression (baseline), random forest, XGBoost; optional HMM comparison.
+**The rule is transparent but forward-looking** (amended Rev 12; earlier text implied it read the current bar). The label at bar `t` describes what the next `horizon` bars actually did, scaled by the volatility known at `t`: `uptrend` when the forward log return exceeds `trend_k * rv_78[t] * sqrt(horizon)`, `downtrend` below the negative of that, `choppy` otherwise, with the volatility flag set when realized vol over the same window exceeds `vol_k * rv_78[t]`. Defaults: `horizon = 78` bars (one session), `trend_k = 0.5`, `vol_k = 1.15`. A rule evaluated on the current bar's own features would make the label a deterministic function of the classifier's inputs: M1 would fit almost perfectly, add nothing over B2, and the ablation rung would measure nothing.
+
+**The embargo is the cost, and it is not optional.** A label at `t` reads prices to `t + horizon`, so the last `horizon` bars of every training window are dropped. `EMBARGO_BARS` is that count, the fold runner drops those rows, and `test_models.py` asserts it. Skipping it leaks the opening hours of the validation window into training, which improves results and leaves no trace. See §11.
+
+**Models:** logistic regression, and it is the only one built (corrected Rev 12). It is a hand-written multinomial implementation in `models/linear.py` rather than scikit-learn, which buys exact reproducibility across library versions and no hidden preprocessing. **Random forest, XGBoost and the optional HMM comparison do not exist.** `models/linear.py` defines a `Classifier` protocol so adding one is a bounded job, but the first graded run found the binding constraint to be statistical power rather than model capacity (§10), so building them is a scope decision and not a fix for the null.
 **Outputs:** regime probabilities per bar, used to permit, restrict, or size participation.
 **Documentation (Wk 9):** a **Model Card**, recording feed provenance and asset class.
 
@@ -103,25 +122,23 @@ For the frontend / backend / AI-layer view the M1 Design Checklist asks for, see
 
 Scores each candidate trade.
 
-**Features:** regime probabilities, signal strength, realized volatility, volume confirmation, trend strength.
+**Features:** regime probabilities, signal strength, realized volatility, trend strength. **Volume confirmation was removed** (corrected Rev 12) by the feed-transfer verdict below.
 **Outputs:** probability of profitable outcome, probability target hit before stop, confidence.
 **Training data:** candidate-trade outcomes from the SIP backtest.
 
 **Scope note:** this model scores the *underlying*. Contract selection for the options layer is deterministic and downstream (§5.6), so the options track adds **no new model** - which is why it needs no folds of its own (§7A).
 
-#### The train/live feed mismatch (read before building any feature)
+#### The train/live feed mismatch - RESOLVED 2026-09-02 (Rev 12)
 
 Verified 2026-08-30: **IEX carries a median 3.16% of consolidated volume** (2.79–3.78% across six sessions - structural, not noise). Backtests run on SIP, live on IEX (§9), so a feature on *absolute* volume would train on values ~30× larger than it meets at inference, and would fail silently on deployment.
 
-**Design decision: all volume-derived features are scale-free** - ratios or standardized scores against a trailing window on the same feed, never raw counts or deltas.
+The transfer assumption was **pre-committed and then tested**, so the outcome rested on evidence rather than on convenience at the time: compute the scale-free volume features from IEX and SIP over the overlapping 2021–2026 period, correlate bar-by-bar, keep them on strong agreement and **drop them entirely on weak agreement**.
 
-**The transfer assumption is tested, not assumed (Week 1–2, blocking §5.5):**
+**Verdict: DROP.** The experiment ran 2026-09-02 and measured Spearman **0.57** against the pre-committed bar of **0.70**. The rule resolves that to DROP and the rule was honoured. **The project has no active volume-derived feature.** The earlier design decision that volume features merely be *scale-free* is superseded: scale-free was not enough, because IEX's ~3% share is a different execution mix rather than a smaller random sample of the same one.
 
-> Compute the scale-free volume features from IEX and SIP over the overlapping 2021–2026 period; correlate bar-by-bar and compare distributions.
-> - **Strong agreement** → keep them; publish the correlation in the Data Card and Model Cards.
-> - **Weak agreement** → **drop volume-derived features entirely**; the Model Card records that IEX proved unrepresentative.
+**VWAP distance goes too, by extension of the rule** (design call, 2026-09-04). It was never one of the four features the experiment tested. VWAP is a price, so a distance to it looks scale-free, but its weights are volumes. Extending the rule rather than re-running the experiment was a judgment call and is recorded as one.
 
-**Must conclude before Week 7.** The decision is pre-committed so it rests on evidence, not on convenience at the time. **As of Revision 11 this is the only open data-side risk in the project**, and it is the first build task (§12).
+Dropped features stay in the registry with `status="dropped"` rather than being deleted, so the finding survives as an artifact rather than as an absence that looks like an oversight. `test_features.py::test_no_active_feature_is_volume_derived` fails if one goes active again, and reinstating one takes a decision-log entry, not an edit. See `DECISIONS.md` rule 2.
 
 ### 5.3 Strategy Engine
 
@@ -293,7 +310,7 @@ Every RunConfig, results table and Model Card records its feed **and its asset c
 | Massive Options Developer / Starter / Basic | $79 / $29 / $0 | ❌ 4 / 2 / 2 years. The lower tiers offer **less** than Alpaca's 31 months |
 | Databento | Usage-based | Depth unconfirmed (quote-based pricing) |
 
-**Buy an upgrade to remove a methodological problem, not to buy history.** Trigger: only if the §5.2 transfer experiment fails *and* losing volume features materially degrades the signal-quality model. **No vendor fixes options history length at a student budget** (§7A, §7B).
+**Buy an upgrade to remove a methodological problem, not to buy history.** Trigger: only if the §5.2 transfer experiment fails *and* losing volume features materially degrades the signal-quality model. **Half of that trigger has now fired** (Rev 12): the experiment failed on 2026-09-02. The second half is unmet and currently unmeasurable, since the first graded run could not detect an effect of this size either way (§10), so the upgrade stays unbought. **No vendor fixes options history length at a student budget** (§7A, §7B).
 
 **Going live** (permanently excluded, §3) would require: real-time data as a hard prerequisite; re-examining Professional vs Non-Professional subscriber status; deliberately removing the paper-only guardrail a test enforces; and an actual track record - walk-forward results are evidence about a hypothesis, not a track record.
 
@@ -350,6 +367,7 @@ Results regenerate from a clean clone using documented config and the documented
 - All AI/LLM outputs cached; backtests never call live APIs.
 - Feature code self-reviewed for lookahead bias before merge.
 - **RTH filtering applied before any feature computation** (§9).
+- **Label embargo (new, Rev 12).** M1's regime labels are forward-looking by design (§5.1), so a label at bar `t` reads prices to `t + horizon`. The last `horizon` bars of every training window are therefore dropped: `EMBARGO_BARS` in `models/labels.py`, applied by the fold runner and asserted by `test_models.py`. Without it the opening hours of each validation window leak into training, which improves results and leaves no trace.
 - **Point-in-time instrument universe (new, Rev 11).** Selecting an options contract *because it turns out to have bars* uses knowledge that it traded - look-ahead bias in its purest form. The universe must be constructed as of decision time, via `universe_as_of(t)` (§7B seam 4). This is the project's most likely correctness bug and the one a methodology reviewer probes first.
 
 ## 12. Timeline (14 weeks)
@@ -402,7 +420,7 @@ Decision log · Experiment log (incl. halt postmortems, §8A) · AI usage log wi
 | Data leakage inflating results | Leakage checklist; walk-forward only; feature-code self-review; cached AI outputs; RTH filter pre-feature |
 | ~~Intraday data availability/cost~~ | **CLOSED 2026-08-30** - ten years of consolidated 5-minute history at $0 (§9) |
 | ~~Real-time data may be 15-minute delayed~~ | **CLOSED 2026-09-01** - IEX measured real-time, streaming entitled (§9) |
-| **Train/live feed mismatch** | **The leading technical risk (§5.2), and now the only open data-side one.** Scale-free volume features, validated by the Week 1–2 transfer experiment with a pre-committed drop decision |
+| **Train/live feed mismatch** | ✅ **CLOSED 2026-09-02 (Rev 12).** The transfer experiment measured Spearman 0.57 against a pre-committed 0.70 bar and the rule resolved to DROP. No volume-derived feature is active, so the mismatch can no longer reach a model. The residual risk moved to §5.2's other side: whether losing those features costs signal quality, which the ablation ladder now measures rather than assumes |
 | **Look-ahead via options contract selection** | **New (§11).** Point-in-time universe; contracts chosen as of decision time, never because they are known to have traded |
 | **Extended-hours bars contaminating features** | RTH filtering at ingestion, enforced in code - necessary on SIP, IEX **and options** (§9) |
 | **Sparse options bars overstating fillability** | **New (§8).** No-forward-fill rule, asserted by test; fill feasibility reported as a measured rate, not assumed |
