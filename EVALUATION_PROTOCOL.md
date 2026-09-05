@@ -12,6 +12,11 @@ Supporting arithmetic: `scripts/analysis/fold_power.py`.
 **Change rule.** Any change after the first M-tier experiment has run requires a
 decision-log entry and must be disclosed in the final technical report.
 
+**Amendment 1, 2026-09-05**, after the first graded run: §3 records how the
+pairing is implemented, and §5 records the realised correlation and detection
+floor, which falsify that section's assumed table. Neither changes the decision
+rule. Read §5 before quoting any figure from it.
+
 ---
 
 ## 1. The primary comparison
@@ -61,6 +66,18 @@ The test is paired because M2 trades a subset of B2's signals. The shared
 component cancels in the difference, which is what makes the comparison
 tractable on 84 out-of-sample months.
 
+**Amendment 1, 2026-09-05: how "paired" is implemented.** The wording above
+does not say how the pairing is performed, and there are two readings. The
+quantity of interest is a difference of two Sharpe ratios, not the Sharpe of a
+difference; a Sharpe is a ratio of moments and does not distribute over
+subtraction, so the two are different numbers. Each resample therefore draws
+**one set of day indices and applies it to both return series**, then recomputes
+both Sharpes and takes the difference. Drawing independently per system would
+destroy the pairing this section relies on. This is a clarification of an
+ambiguous sentence rather than a change to the test; it is recorded here because
+the change rule in the header requires it, and because a reader checking the
+implementation against this document would otherwise have to guess.
+
 ## 4. Decision rule
 
 An improvement is claimed only if all three conditions hold:
@@ -97,6 +114,53 @@ These figures assume independent returns, which intraday strategies are not, so
 they are lower bounds on the true error. They also assume continuous market
 exposure. Realised exposure must be measured and the figures recomputed before
 any of them is quoted.
+
+**Amendment 1, 2026-09-05: the measurement above was made, and it falsifies the
+table above.** The table is kept rather than replaced, so what was assumed and
+what was measured can both be read.
+
+First graded run, 2026-09-04, `config_hash 5cd99d0d59d6ec80`,
+`dataset_hash sha256:ab57353a...`, 1,760 pooled out-of-sample days:
+
+| Comparison | Realised corr | SE(ΔSharpe) | Minimum detectable |
+|---|---|---|---|
+| **M2 vs B2 (primary)** | **+0.407** | **0.412** | **0.808** |
+| M1 vs B2 | +0.453 | 0.396 | 0.776 |
+| M2 vs M1 | +0.909 | 0.162 | 0.317 |
+
+The realised correlation on the primary comparison is 0.407, not the 0.95 to
+0.99 this section assumed, so the detection floor is **0.808** rather than the
+0.24 the table gives at 0.95. The sentence "a true improvement below roughly
+0.3 Sharpe is unlikely to be detected" understates the problem by a factor of
+roughly three on the comparison it was written for.
+
+**Why the assumption failed.** §3 reasons that M2 trades a subset of B2's
+signals so the shared component cancels. The subset relation holds; the subset
+is small. Realised exposure was 42.3% for B2 and 13.1% for M2, so M2 traded 231
+days against B2's 745. On the 514 days where B2 traded and M2 was flat, B2 has
+a return and M2 has a zero, and each of those days adds variance to the
+difference rather than cancelling it. **Subset trading only buys power when the
+subset is most of the whole.** The assumption held where it was incidental
+(M2 vs M1, corr 0.909, floor 0.317) and failed on the primary comparison.
+
+**Consequence for reading the result.** The primary comparison returned
+ΔSharpe +0.065 with a 95% interval of [-0.622, +0.793], whose half-width is
+essentially the detection floor. That interval means *this design could not
+distinguish an effect of plausible size from zero*. It is not evidence that M2
+does not help. Any report of the primary comparison must carry the realised
+floor beside it.
+
+**A structural point this exposes.** A gate that improves per-trade quality by
+trading less is intrinsically hard to validate on a Sharpe difference, because
+selectivity destroys the pairing the estimator depends on. The better the gate
+is at being selective, the weaker this test becomes.
+
+**What this amendment does not change.** The primary comparison, the metric,
+the estimator, the block length, the resample count and the three conditions of
+§4 are untouched. Nothing here was decided after seeing which way the result
+went; the measurement was mandated by the paragraph directly above it. Logged in
+`Decision_Tracker.md` and to be disclosed in the final technical report per the
+change rule.
 
 ## 6. Multiplicity
 
