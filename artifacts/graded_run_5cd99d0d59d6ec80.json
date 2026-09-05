@@ -1,0 +1,478 @@
+{
+  "generated_at": "2026-09-04T23:23:49.952807-07:00",
+  "provenance": {
+    "run_id": "run_example_backtest",
+    "asset_class": "equity",
+    "tier": "graded_core",
+    "vendor": "alpaca",
+    "feed": "sip",
+    "data_start": "2016-06-10",
+    "data_end": "2026-06-30",
+    "fold_scheme": "30/6/6+6",
+    "n_folds": 14,
+    "label_horizon_bars": 78,
+    "label_trend_k": 0.5,
+    "label_vol_k": 1.15,
+    "permitted_regimes": [
+      "uptrend"
+    ],
+    "high_vol_size": 0.5,
+    "strategy": "momentum_breakout",
+    "strategy_version": "mom_v1",
+    "strategy_tier": "primary",
+    "fill_model": "bar",
+    "fill_delay_bars": 1,
+    "cost_multiplier": 1.0,
+    "dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+    "config_hash": "5cd99d0d59d6ec80",
+    "seed": 42
+  },
+  "dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+  "n_bars": 196337,
+  "n_folds": 14,
+  "resamples": 10000,
+  "redundancy": {
+    "b2_candidates": 83,
+    "m1_permitted": 8,
+    "permitted_rate": 0.0963855421686747,
+    "label_vs_ma_gap_agreement": 0.30725749470071667,
+    "candidates_without_b2_trend_filter": 88,
+    "of_those_m1_would_reject": 80
+  },
+  "summaries": {
+    "B1": {
+      "system": "B1",
+      "n_days": 1760,
+      "sharpe": 0.8539848621617974,
+      "sortino": 1.206147500155364,
+      "max_drawdown": 0.3384355947593722,
+      "calmar": 0.47572906017171285,
+      "profit_factor": 1.17936577666022,
+      "hit_rate": 0.5568828213879409,
+      "exposure": 0.9988636363636364,
+      "annualised_return": 0.1610036474235308,
+      "periods_per_year": 252
+    },
+    "B2": {
+      "system": "B2",
+      "n_days": 1760,
+      "sharpe": 0.07702689318559916,
+      "sortino": 0.11690205063643362,
+      "max_drawdown": 0.011295211974858051,
+      "calmar": 0.03437376180788737,
+      "profit_factor": 1.0212263860396833,
+      "hit_rate": 0.47516778523489933,
+      "exposure": 0.42329545454545453,
+      "annualised_return": 0.00038825892599336775,
+      "periods_per_year": 252
+    },
+    "M1": {
+      "system": "M1",
+      "n_days": 1760,
+      "sharpe": 0.025096375982092047,
+      "sortino": 0.03511754428974836,
+      "max_drawdown": 0.007538135774383125,
+      "calmar": 0.007500400362943126,
+      "profit_factor": 1.0101382546866295,
+      "hit_rate": 0.4716981132075472,
+      "exposure": 0.1806818181818182,
+      "annualised_return": 5.6539036298097756e-05,
+      "periods_per_year": 252
+    },
+    "M2": {
+      "system": "M2",
+      "n_days": 1760,
+      "sharpe": 0.14208095443681093,
+      "sortino": 0.1988475236294129,
+      "max_drawdown": 0.006848563684823673,
+      "calmar": 0.044095076771264674,
+      "profit_factor": 1.0712382613388194,
+      "hit_rate": 0.48484848484848486,
+      "exposure": 0.13125,
+      "annualised_return": 0.00030198794145519514,
+      "periods_per_year": 252
+    }
+  },
+  "comparisons": [
+    {
+      "treatment": "B2",
+      "control": "B1",
+      "delta_sharpe": -0.7769579689761982,
+      "ci_low": -1.7950490592276607,
+      "ci_high": 0.12194183544356904,
+      "resamples": 10000,
+      "expected_block": 10,
+      "bootstrap_seed": 42,
+      "is_primary": false,
+      "verdict": "no_claim (ladder rung, protocol \u00a76)",
+      "failures": [],
+      "cost_stress_delta_sharpe": null,
+      "folds_won": 4,
+      "folds_total": 14,
+      "run_run_id": "run_example_backtest",
+      "run_asset_class": "equity",
+      "run_tier": "graded_core",
+      "run_vendor": "alpaca",
+      "run_feed": "sip",
+      "run_data_start": "2016-06-10",
+      "run_data_end": "2026-06-30",
+      "run_fold_scheme": "30/6/6+6",
+      "run_n_folds": 14,
+      "run_label_horizon_bars": 78,
+      "run_label_trend_k": 0.5,
+      "run_label_vol_k": 1.15,
+      "run_permitted_regimes": [
+        "uptrend"
+      ],
+      "run_high_vol_size": 0.5,
+      "run_strategy": "momentum_breakout",
+      "run_strategy_version": "mom_v1",
+      "run_strategy_tier": "primary",
+      "run_fill_model": "bar",
+      "run_fill_delay_bars": 1,
+      "run_cost_multiplier": 1.0,
+      "run_dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+      "run_config_hash": "5cd99d0d59d6ec80",
+      "run_seed": 42
+    },
+    {
+      "treatment": "M1",
+      "control": "B2",
+      "delta_sharpe": -0.05193051720350711,
+      "ci_low": -0.7144717451737441,
+      "ci_high": 0.6426118794055691,
+      "resamples": 10000,
+      "expected_block": 10,
+      "bootstrap_seed": 42,
+      "is_primary": false,
+      "verdict": "no_claim (ladder rung, protocol \u00a76)",
+      "failures": [],
+      "cost_stress_delta_sharpe": null,
+      "folds_won": 8,
+      "folds_total": 14,
+      "run_run_id": "run_example_backtest",
+      "run_asset_class": "equity",
+      "run_tier": "graded_core",
+      "run_vendor": "alpaca",
+      "run_feed": "sip",
+      "run_data_start": "2016-06-10",
+      "run_data_end": "2026-06-30",
+      "run_fold_scheme": "30/6/6+6",
+      "run_n_folds": 14,
+      "run_label_horizon_bars": 78,
+      "run_label_trend_k": 0.5,
+      "run_label_vol_k": 1.15,
+      "run_permitted_regimes": [
+        "uptrend"
+      ],
+      "run_high_vol_size": 0.5,
+      "run_strategy": "momentum_breakout",
+      "run_strategy_version": "mom_v1",
+      "run_strategy_tier": "primary",
+      "run_fill_model": "bar",
+      "run_fill_delay_bars": 1,
+      "run_cost_multiplier": 1.0,
+      "run_dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+      "run_config_hash": "5cd99d0d59d6ec80",
+      "run_seed": 42
+    },
+    {
+      "treatment": "M2",
+      "control": "M1",
+      "delta_sharpe": 0.11698457845471888,
+      "ci_low": -0.21971314116675314,
+      "ci_high": 0.46490757755896955,
+      "resamples": 10000,
+      "expected_block": 10,
+      "bootstrap_seed": 42,
+      "is_primary": false,
+      "verdict": "no_claim (ladder rung, protocol \u00a76)",
+      "failures": [],
+      "cost_stress_delta_sharpe": null,
+      "folds_won": 6,
+      "folds_total": 14,
+      "run_run_id": "run_example_backtest",
+      "run_asset_class": "equity",
+      "run_tier": "graded_core",
+      "run_vendor": "alpaca",
+      "run_feed": "sip",
+      "run_data_start": "2016-06-10",
+      "run_data_end": "2026-06-30",
+      "run_fold_scheme": "30/6/6+6",
+      "run_n_folds": 14,
+      "run_label_horizon_bars": 78,
+      "run_label_trend_k": 0.5,
+      "run_label_vol_k": 1.15,
+      "run_permitted_regimes": [
+        "uptrend"
+      ],
+      "run_high_vol_size": 0.5,
+      "run_strategy": "momentum_breakout",
+      "run_strategy_version": "mom_v1",
+      "run_strategy_tier": "primary",
+      "run_fill_model": "bar",
+      "run_fill_delay_bars": 1,
+      "run_cost_multiplier": 1.0,
+      "run_dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+      "run_config_hash": "5cd99d0d59d6ec80",
+      "run_seed": 42
+    },
+    {
+      "treatment": "M2",
+      "control": "B2",
+      "delta_sharpe": 0.06505406125121177,
+      "ci_low": -0.6222735333831331,
+      "ci_high": 0.7925489931443981,
+      "resamples": 10000,
+      "expected_block": 10,
+      "bootstrap_seed": 42,
+      "is_primary": true,
+      "verdict": "no_claim",
+      "failures": [
+        "95% interval [-0.622, +0.793] includes zero (protocol \u00a74.1)",
+        "point estimate +0.065 is below the +0.20 materiality floor (protocol \u00a74.2)"
+      ],
+      "cost_stress_delta_sharpe": 0.23098249263833023,
+      "folds_won": 8,
+      "folds_total": 14,
+      "run_run_id": "run_example_backtest",
+      "run_asset_class": "equity",
+      "run_tier": "graded_core",
+      "run_vendor": "alpaca",
+      "run_feed": "sip",
+      "run_data_start": "2016-06-10",
+      "run_data_end": "2026-06-30",
+      "run_fold_scheme": "30/6/6+6",
+      "run_n_folds": 14,
+      "run_label_horizon_bars": 78,
+      "run_label_trend_k": 0.5,
+      "run_label_vol_k": 1.15,
+      "run_permitted_regimes": [
+        "uptrend"
+      ],
+      "run_high_vol_size": 0.5,
+      "run_strategy": "momentum_breakout",
+      "run_strategy_version": "mom_v1",
+      "run_strategy_tier": "primary",
+      "run_fill_model": "bar",
+      "run_fill_delay_bars": 1,
+      "run_cost_multiplier": 1.0,
+      "run_dataset_hash": "sha256:ab57353a27ac452bcb9c1a26eef84642455305fd1bdea74031d0e4fcd6e5714c",
+      "run_config_hash": "5cd99d0d59d6ec80",
+      "run_seed": 42
+    }
+  ],
+  "folds": [
+    {
+      "fold": 0,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:603a157461371cc0",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:e48f5b7deb327e58",
+      "sq_threshold": 0.525,
+      "train_labelled_rows": 331,
+      "validation_trades": 69,
+      "train_label_distribution": {
+        "uptrend": 17551,
+        "downtrend": 12375,
+        "choppy": 18723
+      }
+    },
+    {
+      "fold": 1,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:32a03a6ac79197f3",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:4403a49cfdbc6127",
+      "sq_threshold": 0.4,
+      "train_labelled_rows": 335,
+      "validation_trades": 62,
+      "train_label_distribution": {
+        "uptrend": 17602,
+        "downtrend": 12329,
+        "choppy": 18561
+      }
+    },
+    {
+      "fold": 2,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:13826b8fa4cf8aba",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:a7ac5a07ef4355ff",
+      "sq_threshold": 0.425,
+      "train_labelled_rows": 336,
+      "validation_trades": 57,
+      "train_label_distribution": {
+        "uptrend": 18052,
+        "downtrend": 12459,
+        "choppy": 18216
+      }
+    },
+    {
+      "fold": 3,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:982837451023af5a",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:6b9c38e6ec1052fd",
+      "sq_threshold": 0.525,
+      "train_labelled_rows": 326,
+      "validation_trades": 71,
+      "train_label_distribution": {
+        "uptrend": 17775,
+        "downtrend": 12742,
+        "choppy": 18082
+      }
+    },
+    {
+      "fold": 4,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:04a2ea7c792befb4",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:40997bcce25ed776",
+      "sq_threshold": 0.475,
+      "train_labelled_rows": 319,
+      "validation_trades": 59,
+      "train_label_distribution": {
+        "uptrend": 17602,
+        "downtrend": 12316,
+        "choppy": 18957
+      }
+    },
+    {
+      "fold": 5,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:5000ab11b4ab389d",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:35a234d885a71f77",
+      "sq_threshold": 0.45,
+      "train_labelled_rows": 318,
+      "validation_trades": 67,
+      "train_label_distribution": {
+        "uptrend": 18235,
+        "downtrend": 11628,
+        "choppy": 18892
+      }
+    },
+    {
+      "fold": 6,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:c8d499563b2c7cff",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:1bc86252c27fd9fd",
+      "sq_threshold": 0.475,
+      "train_labelled_rows": 316,
+      "validation_trades": 55,
+      "train_label_distribution": {
+        "uptrend": 18601,
+        "downtrend": 11660,
+        "choppy": 18806
+      }
+    },
+    {
+      "fold": 7,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:bc7dc1d5350ba118",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:7807f01fb7db100c",
+      "sq_threshold": 0.3,
+      "train_labelled_rows": 309,
+      "validation_trades": 60,
+      "train_label_distribution": {
+        "uptrend": 18037,
+        "downtrend": 12639,
+        "choppy": 18234
+      }
+    },
+    {
+      "fold": 8,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:2e36c4a99afd11a2",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:c9d29123bd84e8ad",
+      "sq_threshold": 0.5,
+      "train_labelled_rows": 312,
+      "validation_trades": 71,
+      "train_label_distribution": {
+        "uptrend": 17754,
+        "downtrend": 13379,
+        "choppy": 17941
+      }
+    },
+    {
+      "fold": 9,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:797799ea0d38f303",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:bba5e66c22fa0df5",
+      "sq_threshold": 0.3,
+      "train_labelled_rows": 312,
+      "validation_trades": 56,
+      "train_label_distribution": {
+        "uptrend": 17518,
+        "downtrend": 13930,
+        "choppy": 17350
+      }
+    },
+    {
+      "fold": 10,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:3148c8e24ceb2de3",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:49e92c94c0438240",
+      "sq_threshold": 0.325,
+      "train_labelled_rows": 309,
+      "validation_trades": 79,
+      "train_label_distribution": {
+        "uptrend": 16901,
+        "downtrend": 14448,
+        "choppy": 17569
+      }
+    },
+    {
+      "fold": 11,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:4787ab6999ebc116",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:4da01815c4dfcf44",
+      "sq_threshold": 0.475,
+      "train_labelled_rows": 321,
+      "validation_trades": 70,
+      "train_label_distribution": {
+        "uptrend": 16738,
+        "downtrend": 14500,
+        "choppy": 17404
+      }
+    },
+    {
+      "fold": 12,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:54e987bed721dde2",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:6305cdc31a677d88",
+      "sq_threshold": 0.425,
+      "train_labelled_rows": 336,
+      "validation_trades": 52,
+      "train_label_distribution": {
+        "uptrend": 17226,
+        "downtrend": 13075,
+        "choppy": 18425
+      }
+    },
+    {
+      "fold": 13,
+      "regime_model_version": "regime_lr_v1",
+      "regime_artifact_hash": "sha256:61429320bffa4a54",
+      "signal_quality_version": "sq_lr_v1",
+      "signal_quality_artifact_hash": "sha256:ba01d3d72aba07f3",
+      "sq_threshold": 0.425,
+      "train_labelled_rows": 328,
+      "validation_trades": 59,
+      "train_label_distribution": {
+        "uptrend": 17162,
+        "downtrend": 13048,
+        "choppy": 18204
+      }
+    }
+  ],
+  "elapsed_seconds": 85.8
+}
