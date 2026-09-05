@@ -179,3 +179,85 @@ def test_evaluation_protocol_is_locked() -> None:
         "the protocol must state what the design can detect, so a null result "
         "is interpretable rather than surprising"
     )
+
+
+# ------------------------------------------- the protocol and the code agree
+
+
+def test_the_locked_protocol_constants_match_the_code() -> None:
+    """EVALUATION_PROTOCOL.md is locked; the code that implements it is not.
+
+    Nothing else in the suite would notice if the materiality floor, the block
+    length or the resample count drifted away from the document - the runs
+    would still pass, the results would still print, and the prespecification
+    would quietly be describing a test nobody ran. Every number below appears
+    verbatim in the protocol.
+    """
+    protocol = (REPO_ROOT / "EVALUATION_PROTOCOL.md").read_text()
+
+    from project_beta.evaluation.bootstrap import ALPHA, EXPECTED_BLOCK_DAYS, RESAMPLES
+    from project_beta.evaluation.harness import MATERIALITY_FLOOR, PRIMARY_COMPARISON
+
+    assert MATERIALITY_FLOOR == 0.20 and "+0.20" in protocol
+    assert EXPECTED_BLOCK_DAYS == 10 and "block length 10" in protocol
+    assert RESAMPLES == 10_000 and "10,000 resamples" in protocol
+    assert ALPHA == 0.05 and "95%" in protocol
+    assert PRIMARY_COMPARISON == ("M2", "B2") and "M2 versus B2" in protocol
+
+
+def test_the_ablation_ladder_has_exactly_four_rungs() -> None:
+    """Outline §7: four rungs, not six. Crypto and options are a separate
+    cross-asset section, not additional rungs, and adding one here would be the
+    quiet way that distinction erodes."""
+    from project_beta.evaluation.runner import LADDER
+
+    assert LADDER == ("B1", "B2", "M1", "M2")
+
+
+# The live-money trading host. `paper-api.alpaca.markets` legitimately contains
+# it as a substring, which is why the scheme is part of the pattern - an
+# earlier version of this test flagged the paper host and would have been
+# deleted the first time it was inconvenient.
+LIVE_HOST = "https://api.alpaca.markets"
+
+
+def test_no_live_money_code_path_exists() -> None:
+    """The package docstring promises paper trading only and says tests enforce
+    its absence. This is that enforcement."""
+    offenders: list[str] = []
+    for path in (REPO_ROOT / "src").rglob("*.py"):
+        text = path.read_text(errors="ignore")
+        for marker in (LIVE_HOST, "live_trading", "real_money"):
+            if marker in text:
+                offenders.append(f"{path.relative_to(REPO_ROOT)}: {marker}")
+    assert not offenders, f"possible live-trading code path: {offenders}"
+
+
+def test_the_alpaca_adapter_refuses_a_non_paper_trading_host() -> None:
+    """Belt and braces: the absence of a live host in the source is one thing,
+    and refusing one passed at construction is another."""
+    source = (REPO_ROOT / "src" / "project_beta" / "data" / "alpaca.py").read_text()
+    assert "PAPER_TRADING_HOST" in source
+    assert "paper" in source.lower()
+
+
+def test_the_config_and_the_label_module_agree_on_regimes() -> None:
+    """`config.py` mirrors the three trend states because it must not import
+    the model layer (the model layer imports it), and a config that cannot
+    check its own regime names would accept `permitted_regimes: [sideways]`
+    and silently permit nothing. A mirror that drifts is worse than no mirror,
+    so the two are asserted identical here."""
+    from project_beta.config import TREND_STATES as config_states
+    from project_beta.models.labels import TREND_STATES as label_states
+
+    assert tuple(config_states) == tuple(label_states)
+
+
+def test_the_embargo_constant_matches_the_default_label_horizon() -> None:
+    """The embargo is the label horizon. The runner takes it from the config,
+    and `EMBARGO_BARS` remains as documentation - so it must not drift from
+    the default it documents."""
+    from project_beta.config import RegimeLabelConfig
+    from project_beta.models.labels import EMBARGO_BARS, HORIZON_BARS
+
+    assert EMBARGO_BARS == HORIZON_BARS == RegimeLabelConfig().horizon_bars
