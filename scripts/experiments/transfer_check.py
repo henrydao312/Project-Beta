@@ -48,8 +48,8 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from project_beta.data.alpaca import AlpacaProvider # noqa: E402
-from project_beta.data.provider import ProviderAuthError # noqa: E402
+from project_beta.data.alpaca import AlpacaProvider
+from project_beta.data.provider import ProviderAuthError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = REPO_ROOT / "data" / "raw" / "transfer_check"
@@ -231,7 +231,7 @@ def compare(sip: pd.DataFrame, iex: pd.DataFrame) -> dict:
             continue
         pair = merged[["et", cs, ci]].replace([np.inf, -np.inf], np.nan).dropna()
         if len(pair) < 500:
-            stats[feat] = {"n": int(len(pair)), "note": "too few aligned bars"}
+            stats[feat] = {"n": len(pair), "note": "too few aligned bars"}
             continue
 
         a = pair[cs].to_numpy()
@@ -242,7 +242,7 @@ def compare(sip: pd.DataFrame, iex: pd.DataFrame) -> dict:
             if len(g) >= 200
         }
         stats[feat] = {
-            "n": int(len(pair)),
+            "n": len(pair),
             "pearson": round(float(np.corrcoef(a, b)[0, 1]), 4),
             "spearman": round(_spearman(pair[cs], pair[ci]), 4),
             "ks_statistic": round(_ks_statistic(a, b), 4),
@@ -259,9 +259,9 @@ def compare(sip: pd.DataFrame, iex: pd.DataFrame) -> dict:
         }
 
     stats["_alignment"] = {
-        "sip_bars": int(len(sip)),
-        "iex_bars": int(len(iex)),
-        "aligned_bars": int(len(merged)),
+        "sip_bars": len(sip),
+        "iex_bars": len(iex),
+        "aligned_bars": len(merged),
         # An IEX bar absent where SIP has one is a no-trade interval on a feed
         # carrying ~3% of volume, not a gap in the data. Reported because the
         # rate itself is a finding for the Data Card.
@@ -325,7 +325,7 @@ def main() -> int:
         provider = AlpacaProvider()
         provider.authenticate()
     except ProviderAuthError as exc:
-        raise SystemExit(f"credentials: {exc}")
+        raise SystemExit(f"credentials: {exc}") from exc
 
     print(f"window {args.start} to {args.end}")
     frames = {}
