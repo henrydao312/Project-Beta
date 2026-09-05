@@ -87,7 +87,10 @@ DEFAULT_CONFIG = REPO_ROOT / "configs" / "example_backtest.yaml"
 
 def _cache_path(config: RunConfig, year: int) -> Path:
     d = config.data
-    return CACHE_DIR / f"{d.symbol}_{d.feed}_{d.timeframe}_{year}.parquet"
+    # BTC/USD carries a slash, which a path would read as a directory. The same
+    # substitution pipeline.store_path already makes, for the same reason.
+    symbol = d.symbol.replace("/", "-")
+    return CACHE_DIR / f"{symbol}_{d.feed}_{d.timeframe}_{year}.parquet"
 
 
 def fetch(config: RunConfig, *, force: bool = False) -> None:
