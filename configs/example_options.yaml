@@ -24,6 +24,39 @@ risk:
   daily_loss_limit: 500.0
   max_position: 2000.0
   sizing: vol_adjusted_v1
+  risk_per_trade: 0.005 # fraction of equity risked entry-to-stop
+
+# Parameters live in the config, not in the strategy code, so a threshold sweep
+# is a new file rather than an edit to the rules (Outline §5.3). `tier` decides
+# whether this run may enter the graded ablation; the harness refuses a graded
+# comparison for tier: secondary.
+# M1 and M2 parameters. Everything here changes every model number, so it lives
+# in the config and travels into `config_hash` and every results row. These
+# were module defaults until 2026-09-04, which let two materially different
+# runs share a hash.
+models:
+  labels:
+    horizon_bars: 78 # also the training-window embargo: a label reads this far ahead
+    trend_k: 0.5 # forward move, in units of the expected move at current vol
+    vol_k: 1.15 # forward vol, relative to contemporaneous, that flags 'high'
+  permitted_regimes: [uptrend] # the primary strategy is long-only
+  high_vol_size: 0.5 # a gate may shrink and may never enlarge
+  regime_l2: 1.0
+  signal_quality_l2: 1.0
+  min_validation_trades: 20
+
+strategy:
+  name: momentum_breakout
+  version: mom_v1
+  tier: primary # primary | secondary (secondary is backtest-only, exploratory)
+  params:
+    min_adx: 20.0
+    min_range_expansion: 1.2
+    min_ma_gap: 0.0
+    breakout_tolerance: 0.0
+    stop_vol_mult: 3.0
+    target_r_multiple: 2.0
+    cooldown_bars: 12
 
 execution:
   # Required for options: an absent bar is an interval in which the contract

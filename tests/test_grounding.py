@@ -189,7 +189,7 @@ def test_canary_explanation_still_mentions_the_key_state() -> None:
     """
     pytest.skip("enable once the explanation service exists (PRD §5.11)")
 
-    # generated = explanation_service.explain(CANARY_RECORD) # noqa: ERA001
-    # assert enforce_grounding(generated, CANARY_RECORD) # noqa: ERA001
-    # for value in CANARY_EXPECTED_VALUES: # noqa: ERA001
-    # assert value in generated.lower() # noqa: ERA001
+    # generated = explanation_service.explain(CANARY_RECORD)
+    # assert enforce_grounding(generated, CANARY_RECORD)
+    # for value in CANARY_EXPECTED_VALUES:
+    # assert value in generated.lower()

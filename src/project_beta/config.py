@@ -52,6 +52,14 @@ Tier = Literal["primary", "secondary"]
 
 # Which claim each asset class is permitted to make. Outline §7A. Carried into
 # provenance() so the tier travels with the results rather than with the prose.
+# The three trend states. `models/labels.py` is the definition; this mirror
+# exists because config.py must not import the model layer (the model layer
+# imports config), and a config that cannot check its own regime names would
+# accept `permitted_regimes: [sideways]` and silently permit nothing.
+# `test_guardrails.py::test_the_config_and_the_label_module_agree_on_regimes`
+# asserts the two lists stay identical.
+TREND_STATES: tuple[str, ...] = ("uptrend", "downtrend", "choppy")
+
 ASSET_CLASS_TIER: dict[str, str] = {
     "equity": "graded_core",
     "crypto": "graded_secondary",
@@ -105,6 +113,11 @@ class RiskConfig:
     daily_loss_limit: float
     max_position: float
     sizing: str = "vol_adjusted_v1"
+    # Fraction of equity risked between entry and stop on a single trade. The
+    # sizing rule is deterministic and lives in the risk engine, never in a
+    # model: Outline §1A's claim is that AI gates trades and never sizes or
+    # takes them.
+    risk_per_trade: float = 0.005
     halt: HaltConfig = field(default_factory=HaltConfig)
     # Regimes where the signal-quality model abstains rather than participates.
     # This is the fairness mitigation from Outline §20.3 - configuration, not a
@@ -129,6 +142,21 @@ class ExecutionConfig:
     fill_model: FillModel = "bar"
     commission_per_share: float = 0.0
     slippage_bps: float = 1.0
+    # Bars between the decision and the fill. A candidate is generated from a
+    # bar's close; filling at that same close is the most common backtest
+    # inflation there is, and it looks entirely ordinary in code. One bar is
+    # the honest minimum for a system that reads a close and then acts.
+    fill_delay_bars: int = 1
+    # Multiplies every cost. This is how the 2x and 3x cost-stress runs of
+    # EVALUATION_PROTOCOL.md §9 are produced: the same code path, one config
+    # value, so the stressed run cannot drift from the headline one.
+    cost_multiplier: float = 1.0
+    # Bars a position may be held. 78 is one regular session at 5 minutes.
+    max_hold_bars: int = 78
+    # Flatten before the close. An intraday strategy that holds overnight is
+    # taking gap risk it never modelled, and the backtest would credit it with
+    # overnight drift the live system was never exposed to.
+    flatten_at_session_end: bool = True
 
 
 @dataclass(frozen=True)
@@ -146,6 +174,79 @@ class OptionSelectionConfig:
     # Minimum measured bars over the contract's lifetime for it to be
     # considered tradeable. The screen is fitted and tested, never assumed.
     min_bars_in_lifetime: int = 200
+
+
+@dataclass(frozen=True)
+class RegimeLabelConfig:
+    """How a regime label is defined. Every value here changes every label.
+
+    These were module defaults until 2026-09-04, which meant two runs with
+    materially different labels produced identical `config_hash` values. A
+    provenance system that cannot tell those runs apart is not a provenance
+    system, so they live here and travel with the results.
+
+    `horizon_bars` is also the embargo length: a label at bar t reads prices up
+    to t+horizon, so the last `horizon` bars of every training window are
+    dropped. Lengthening the horizon lengthens the embargo, and the runner
+    takes that number from here rather than from a constant.
+    """
+
+    horizon_bars: int = 78
+    # Forward move, in units of the expected move at current volatility, that
+    # separates a trend from chop. Scale-free by construction: a 0.3% move is a
+    # trend in a calm month and noise in a violent one.
+    trend_k: float = 0.5
+    # Forward realized volatility, relative to contemporaneous, above which the
+    # volatility flag is 'high'.
+    vol_k: float = 1.15
+
+
+@dataclass(frozen=True)
+class ModelsConfig:
+    """M1 and M2 parameters. Outline §5.1, §5.2; PRD §4.3's `models:` block.
+
+    Nothing here is a model weight - those are fingerprinted by
+    `artifact_hash()`. These are the choices made *before* fitting, and each
+    one moves every number the ladder reports.
+    """
+
+    labels: RegimeLabelConfig = field(default_factory=RegimeLabelConfig)
+    # Regimes in which M1 permits participation. The primary strategy is
+    # long-only, so a downtrend prediction is a reason to stand aside rather
+    # than to reverse.
+    permitted_regimes: tuple[str, ...] = ("uptrend",)
+    # Size multiplier applied in the high-volatility state. Bounded at 1.0: a
+    # gate may shrink a position and may never enlarge one.
+    high_vol_size: float = 0.5
+    regime_l2: float = 1.0
+    signal_quality_l2: float = 1.0
+    # Validation trades below which no acceptance threshold is selectable.
+    # Picking the cutoff from a handful of surviving trades is how a threshold
+    # sweep becomes overfitting.
+    min_validation_trades: int = 20
+
+
+@dataclass(frozen=True)
+class StrategyConfig:
+    """Which rule set generates candidates, and at what evidentiary tier.
+
+    `tier` is the structural half of Outline §5.3's promise. One strategy -
+    momentum breakout - carries full evaluation rigor; MA trend and mean
+    reversion exist behind the same interface so the architecture stays
+    extensible after the course, and are backtest-only. Documenting that
+    boundary is not enough: a secondary strategy that finds its way into the
+    graded ablation would produce a number nobody could defend and nothing
+    would have stopped it. The tier travels in the config, into `provenance()`,
+    and the harness refuses a graded run for anything but 'primary'.
+
+    `params` lives here rather than in code so the rule set's thresholds are
+    part of the run's provenance and can be swept without editing the strategy.
+    """
+
+    name: str = "momentum_breakout"
+    version: str = "mom_v1"
+    tier: Tier = "primary"
+    params: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -182,6 +283,8 @@ class RunConfig:
     mode: Mode
     data: DataConfig
     risk: RiskConfig
+    strategy: StrategyConfig = field(default_factory=StrategyConfig)
+    models: ModelsConfig = field(default_factory=ModelsConfig)
     # None means "this run makes no walk-forward performance claim". That is
     # the correct and only shape for options, so absence is meaningful here and
     # a default would quietly erase the distinction.
@@ -304,6 +407,22 @@ class RunConfig:
             )
         if e.slippage_bps < 0 or e.commission_per_share < 0:
             raise ConfigError("execution costs must be non-negative.")
+        if e.cost_multiplier <= 0:
+            raise ConfigError(
+                "execution.cost_multiplier must be positive. It exists to "
+                "produce the 2x and 3x cost-stress runs (EVALUATION_PROTOCOL "
+                "§9); zero would report a frictionless result as if it were "
+                "the headline one."
+            )
+        if e.fill_delay_bars < 1:
+            raise ConfigError(
+                "execution.fill_delay_bars must be at least 1. A candidate is "
+                "generated from a bar's close; filling at that same close "
+                "trades on information the decision was made from, which is "
+                "the most common way a backtest inflates itself."
+            )
+        if e.max_hold_bars <= 0:
+            raise ConfigError("execution.max_hold_bars must be positive.")
 
         if d.asset_class == "option" and self.option_selection is None:
             raise ConfigError(
@@ -317,12 +436,71 @@ class RunConfig:
                 "option_selection applies only to asset_class='option'."
             )
 
+        # -- strategy -------------------------------------------------------
+        st = self.strategy
+        if st.tier not in ("primary", "secondary"):
+            raise ConfigError(
+                f"strategy.tier must be 'primary' or 'secondary', got "
+                f"{st.tier!r}. The tier decides whether this run's numbers may "
+                "enter the graded ablation (Outline §5.3); an unrecognised "
+                "value would default to whichever branch was written first."
+            )
+        if not st.name or not st.version:
+            raise ConfigError(
+                "strategy.name and strategy.version are both required. The "
+                "version is what a results row cites when the rules change "
+                "mid-semester and two runs stop being comparable."
+            )
+
+        # -- models ---------------------------------------------------------
+        m = self.models
+        if m.labels.horizon_bars <= 0:
+            raise ConfigError(
+                "models.labels.horizon_bars must be positive. It is both the "
+                "label horizon and the training-window embargo; zero would "
+                "leave labels that read the validation window in the training "
+                "set."
+            )
+        if m.labels.trend_k < 0 or m.labels.vol_k <= 0:
+            raise ConfigError(
+                "models.labels.trend_k must be non-negative and vol_k positive."
+            )
+        unknown = set(m.permitted_regimes) - set(TREND_STATES)
+        if unknown:
+            raise ConfigError(
+                f"models.permitted_regimes contains unknown states "
+                f"{sorted(unknown)}. Known states are {list(TREND_STATES)}; an "
+                "unrecognised name would permit nothing and look like a model "
+                "that rejects everything."
+            )
+        if not m.permitted_regimes:
+            raise ConfigError(
+                "models.permitted_regimes is empty, so M1 would reject every "
+                "candidate and the rung would measure abstention rather than "
+                "the classifier. State the regimes explicitly."
+            )
+        if not 0.0 <= m.high_vol_size <= 1.0:
+            raise ConfigError(
+                "models.high_vol_size must lie in [0, 1]. A gate may reject or "
+                "shrink a candidate and may never enlarge one (Outline §1A)."
+            )
+        if m.regime_l2 < 0 or m.signal_quality_l2 < 0:
+            raise ConfigError("model L2 strengths must be non-negative.")
+        if m.min_validation_trades < 1:
+            raise ConfigError(
+                "models.min_validation_trades must be at least 1."
+            )
+
         # -- risk -----------------------------------------------------------
         r = self.risk
         if not 0 < r.max_drawdown < 1:
             raise ConfigError("risk.max_drawdown must be a fraction in (0, 1).")
         if r.daily_loss_limit <= 0 or r.max_position <= 0:
             raise ConfigError("risk limits must be positive.")
+        if not 0 < r.risk_per_trade < 1:
+            raise ConfigError(
+                "risk.risk_per_trade must be a fraction in (0, 1)."
+            )
         if r.halt.data_staleness_bars <= 0 or r.halt.max_consecutive_api_errors <= 0:
             raise ConfigError("halt thresholds must be positive.")
 
@@ -383,7 +561,17 @@ class RunConfig:
                 else None
             ),
             "n_folds": self.fold_count(),
+            "label_horizon_bars": self.models.labels.horizon_bars,
+            "label_trend_k": self.models.labels.trend_k,
+            "label_vol_k": self.models.labels.vol_k,
+            "permitted_regimes": list(self.models.permitted_regimes),
+            "high_vol_size": self.models.high_vol_size,
+            "strategy": self.strategy.name,
+            "strategy_version": self.strategy.version,
+            "strategy_tier": self.strategy.tier,
             "fill_model": self.execution.fill_model,
+            "fill_delay_bars": self.execution.fill_delay_bars,
+            "cost_multiplier": self.execution.cost_multiplier,
             "dataset_hash": self.data.dataset_hash,
             "config_hash": self.config_hash(),
             "seed": self.seed,
@@ -427,8 +615,25 @@ def load_run_config(path: str | Path) -> RunConfig:
             daily_loss_limit=float(risk_raw["daily_loss_limit"]),
             max_position=float(risk_raw["max_position"]),
             sizing=risk_raw.get("sizing", "vol_adjusted_v1"),
+            risk_per_trade=float(risk_raw.get("risk_per_trade", 0.005)),
             halt=HaltConfig(**(risk_raw.get("halt") or {})),
             regime_abstain=list(risk_raw.get("regime_abstain") or []),
+        )
+        models_raw = dict(raw.get("models") or {})
+        labels_raw = dict(models_raw.pop("labels", None) or {})
+        models = ModelsConfig(
+            labels=RegimeLabelConfig(**labels_raw),
+            permitted_regimes=tuple(
+                models_raw.pop("permitted_regimes", None) or ("uptrend",)
+            ),
+            **models_raw,
+        )
+        strat_raw = raw.get("strategy") or {}
+        strategy = StrategyConfig(
+            name=strat_raw.get("name", "momentum_breakout"),
+            version=strat_raw.get("version", "mom_v1"),
+            tier=strat_raw.get("tier", "primary"),
+            params=dict(strat_raw.get("params") or {}),
         )
         # Absence is meaningful: no block means no walk-forward claim.
         wf_raw = raw.get("walk_forward")
@@ -440,6 +645,8 @@ def load_run_config(path: str | Path) -> RunConfig:
             mode=raw["mode"],
             data=data,
             risk=risk,
+            strategy=strategy,
+            models=models,
             walk_forward=wf,
             execution=ExecutionConfig(**(raw.get("execution") or {})),
             option_selection=selection,
@@ -468,9 +675,18 @@ def main(argv: list[str] | None = None) -> int:
     print(f"OK {cfg.run_id} [{p['tier']}]")
     print(f" mode={cfg.mode} asset_class={p['asset_class']} feed={p['feed']}")
     print(f" session={cfg.data.session} fill_model={p['fill_model']}")
+    print(
+        f" strategy={p['strategy']} {p['strategy_version']} "
+        f"[{p['strategy_tier']}]"
+    )
     print(f" range={cfg.data.start} to {cfg.data.end} ({cfg.span_months()} months)")
     print(f" fold scheme={p['fold_scheme']} folds={p['n_folds']}")
     print(f" config_hash={p['config_hash']}")
+    print(
+        f" labels=h{cfg.models.labels.horizon_bars}/"
+        f"k{cfg.models.labels.trend_k}/v{cfg.models.labels.vol_k} "
+        f"permitted={','.join(cfg.models.permitted_regimes)}"
+    )
     if cfg.risk.regime_abstain:
         print(f" abstaining in regimes: {', '.join(cfg.risk.regime_abstain)}")
     return 0

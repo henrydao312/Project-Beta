@@ -96,7 +96,7 @@ def timeframe_minutes(timeframe: str) -> int:
 # ------------------------------------------------------------ session filter
 
 
-def _to_market_time(ts: datetime) -> datetime:
+def to_market_time(ts: datetime) -> datetime:
     """Interpret a bar timestamp in market time.
 
     A naive timestamp is treated as UTC, which is what every Alpaca endpoint
@@ -106,6 +106,12 @@ def _to_market_time(ts: datetime) -> datetime:
     if ts.tzinfo is None:
         ts = ts.replace(tzinfo=timezone.utc)
     return ts.astimezone(MARKET_TZ)
+
+
+# Retained so the private name keeps working; the public one is what the
+# feature layer imports, since time of day is a feature input and not only a
+# filtering concern.
+_to_market_time = to_market_time
 
 
 def in_regular_session(ts: datetime) -> bool:
@@ -119,7 +125,7 @@ def in_regular_session(ts: datetime) -> bool:
     13:00 close against 16:00 would drop nothing but would make the day look
     46% covered, and nine such days a year is enough noise to hide a real gap.
     """
-    local = _to_market_time(ts)
+    local = to_market_time(ts)
     day = local.date()
     if not is_trading_day(day):
         return False
@@ -330,7 +336,7 @@ def coverage(
         return []
     minutes = timeframe_minutes(timeframe)
     per_day: Counter[date] = Counter(
-        _to_market_time(b.timestamp).date() for b in bars
+        to_market_time(b.timestamp).date() for b in bars
     )
     return [
         SessionCoverage(
@@ -356,7 +362,7 @@ def _misaligned(bars: Sequence[Bar], timeframe: str) -> int:
         return 0
     bad = 0
     for b in bars:
-        local = _to_market_time(b.timestamp)
+        local = to_market_time(b.timestamp)
         offset = (local.hour * 60 + local.minute) - (
             REGULAR_OPEN.hour * 60 + REGULAR_OPEN.minute
         )

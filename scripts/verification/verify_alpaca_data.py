@@ -53,7 +53,7 @@ CRYPTO_ROOT = "https://data.alpaca.markets/v1beta3"
 OPTIONS_ROOT = "https://data.alpaca.markets/v1beta1"
 SYMBOL = "SPY"
 TIMEFRAME = "5Min"
-BARS_PER_RTH_SESSION = 78 # 09:30–16:00 ET = 6.5h = 78 five-minute bars
+BARS_PER_RTH_SESSION = 78 # 09:30-16:00 ET = 6.5h = 78 five-minute bars
 
 report: dict = {"symbol": SYMBOL, "timeframe": TIMEFRAME,
                 "run_at_utc": datetime.now(timezone.utc).isoformat()}
@@ -199,7 +199,7 @@ def q2_recency(headers: dict, feed: str) -> None:
         print(f" {name:<14} {ts} → {lag_min:.1f} min old")
 
     report["q2_recency"] = findings
-    print("\n → INTERPRETING THIS: run it during regular market hours (09:30–16:00 ET).")
+    print("\n → INTERPRETING THIS: run it during regular market hours (09:30-16:00 ET).")
     print(" Lags under ~1 min = real-time; the Week 9 live loop is fine on this tier.")
     print(" Lags around 15 min = the restriction applies; see PRD §5.9 mitigations.")
     print(" Outside market hours the lag is meaningless - rerun when open.")
@@ -211,7 +211,8 @@ def q2b_stream(feed: str) -> None:
     hr("Q2b Real-time stream check (definitive)")
     try:
         import asyncio
-        import websockets # type: ignore
+
+        import websockets  # type: ignore
     except ImportError:
         print(" Skipped - pip install websockets to run this.")
         return
@@ -250,7 +251,7 @@ def q2b_stream(feed: str) -> None:
                 report["q2b_stream"] = {"messages_seen": seen}
                 if not seen:
                     print(" No messages. Market closed, or this feed isn't entitled.")
-        except Exception as exc: # noqa: BLE001 - diagnostic script
+        except Exception as exc:
             print(f" Stream error: {exc}")
             report["q2b_stream"] = {"error": str(exc)}
 
@@ -285,7 +286,7 @@ def q3_volume(headers: dict) -> None:
     result = {"iex_daily_volume": dict(daily)}
 
     try:
-        import yfinance as yf # type: ignore
+        import yfinance as yf  # type: ignore
         ref = yf.Ticker(SYMBOL).history(start=start.date().isoformat(),
                                         end=end.date().isoformat())
         ratios = []
@@ -358,7 +359,7 @@ def q4_coverage(headers: dict, feed: str) -> None:
         "bars_per_day": counts,
     }
     print("\n → Feeds the §5.1 validation rules and the Week 4 Data Card.")
-    print(" → Note: bars outside 09:30–16:00 ET are extended-hours; a count well")
+    print(" → Note: bars outside 09:30-16:00 ET are extended-hours; a count well")
     print(" above 78 means extended-hours bars are included. Decide explicitly")
     print(" whether the strategy trades them, and filter consistently.")
 
@@ -593,7 +594,7 @@ def main() -> None:
     headers = auth_headers()
     print(f"PROJECT BETA - Alpaca data verification ({SYMBOL} @ {TIMEFRAME}, feed={args.feed})")
     print(f"Run at {report['run_at_utc']}")
-    print("Run this DURING market hours (09:30–16:00 ET) for Q2 to mean anything.")
+    print("Run this DURING market hours (09:30-16:00 ET) for Q2 to mean anything.")
 
     q1_history_depth(headers, args.feed)
     q2_recency(headers, args.feed)
