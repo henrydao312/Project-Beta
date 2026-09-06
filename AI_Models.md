@@ -14,16 +14,18 @@ Confusing these is the most common misreading of the project.
 |---|---|---|---|
 | **Development assistance** | Coding agents and chat assistants used while writing the code | Neither | No |
 | **M1 and M2** | Market-regime classifier and signal-quality model | **Build** | Yes |
-| **Explanation services** | Hosted LLM writing trade rationales and failure narratives | **Buy** | Yes, as an API call |
+| **Explanation and query services** | Hosted LLM writing trade rationales, failure narratives and bounded answers over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Yes, as an API call |
 
 Development assistance is a tool, not a deliverable. It is permitted course-wide
 and its use is recorded with per-component provenance in the AI usage log, per
 Outline §16. It is not part of the shipped system and is not evaluated.
 
 No model in this project is pretrained or fine-tuned. Outline §22.5 walks the
-course's architecture decision tree and terminates at Tier 1, Prompt-Centric,
-for both LLM services. The two classical models are not on that spectrum, which
-orders LLM application patterns.
+course's architecture decision tree and gives two answers for the LLM services:
+the explanation/failure-narrative services are Tier 1, Prompt-Centric, while
+the query layer is retrieval over a closed, hashed, system-authored corpus. The
+two classical models are not on that spectrum, which orders LLM application
+patterns.
 
 ---
 
@@ -34,16 +36,19 @@ orders LLM application patterns.
 | Field | Value |
 |---|---|
 | Task | Multiclass classification on tabular features |
-| Algorithms | Logistic regression (baseline), random forest, XGBoost. Optional HMM comparison |
+| Algorithm | Hand-written logistic regression |
 | Input | Per-bar features from SPY 5-minute RTH bars |
 | Output | Probabilities over three trend states (uptrend, downtrend, choppy) plus a separate binary volatility flag |
 | Use | Permits, restricts or sizes participation. Never proposes a trade |
-| Library | scikit-learn, XGBoost |
+| Library | Project-local implementation in `models/linear.py`; no scikit-learn/XGBoost dependency |
 
-**Labelling scheme.** Three trend states plus a binary volatility flag, derived
-from transparent rules on moving-average slope and realised-return thresholds.
-Crossed classes on short-bar history produce thin, noisy labels; 3+1 keeps
-classes populated and interpretable.
+**Labelling scheme.** Three trend states plus a binary volatility flag. The
+labels are transparent but forward-looking: each bar is labelled by what the
+next horizon actually did, scaled by volatility known at the labelled bar.
+That makes M1 a genuine prediction task rather than a model trained to
+reproduce an `if` statement over its own inputs. The cost is an embargo: the
+last `horizon` bars of each training window are dropped because their labels
+read into the validation window.
 
 **Constraint: there is no ground truth for a market regime.** The labels are a
 construction of this project, so M1 cannot be validated against an external
@@ -55,11 +60,11 @@ ablation.
 | Field | Value |
 |---|---|
 | Task | Binary classification on tabular features |
-| Algorithm | XGBoost |
+| Algorithm | Hand-written logistic regression |
 | Input | Regime probabilities, signal strength, realised volatility, trend strength |
 | Output | Probability of a profitable outcome, probability target is hit before stop, confidence |
 | Training data | Candidate-trade outcomes from the SIP backtest |
-| Library | scikit-learn, XGBoost |
+| Library | Project-local implementation in `models/linear.py`; no scikit-learn/XGBoost dependency |
 
 **Scope note.** M2 scores the underlying. Contract selection for the options
 layer is deterministic and downstream, so the options track adds no model.
@@ -77,8 +82,8 @@ low, strategy parameters are widened before M2 is built.
 | Dataset | 200,460 RTH bars, 2016-06-10 onward |
 | Feature matrix | Approximately 24 MB |
 | Training rows per fold | 49,140 (30-month train window) |
-| Measured fit time | 0.96 s for XGBoost, 49,140 rows, 15 features, 300 trees |
-| Full sweep estimate | 14 folds x 2 models x ~20 configurations, 5 to 30 minutes |
+| Measured fit time | CPU-local logistic regression; fast enough that compute is not a binding constraint |
+| Full sweep estimate | 14 folds x 2 models x planned threshold/parameter sweeps, CPU-local |
 | Hardware | CPU only. No GPU |
 | Cost | $0 |
 
@@ -87,13 +92,13 @@ Compute is not a constraint on this project.
 ### 2.4 Constraints that apply to both built models
 
 1. **Calibration is required, not optional.** The trade gate uses probability
-   thresholds. Raw gradient-boosted probabilities are not calibrated, so Platt
-   or isotonic calibration is applied and Brier score is reported.
+   thresholds. Calibration and Brier score are reported per fold.
 2. **All fitting happens inside the fold.** Scalers, calibrators and threshold
    selection use training and validation data only. Thresholds are chosen on the
    validation window, never the test window.
-3. **No forward-looking labels.** A regime label computed from a window that
-   extends past the bar it labels is leakage.
+3. **Forward-looking labels require an embargo.** A regime label computed from
+   future bars is legitimate only if the training rows whose labels read across
+   the train/validation boundary are dropped.
 4. **No volume-derived features.** The feed-transfer experiment (2026-09-02)
    failed its pre-committed threshold, so volume-derived features are dropped
    from both models and from B2's strategy rules.
@@ -108,14 +113,14 @@ Compute is not a constraint on this project.
 
 ## 3. Model the project buys
 
-### 3.1 Explanation service and failure narrative
+### 3.1 Explanation, failure narrative and bounded query layer
 
 | Field | Value |
 |---|---|
-| Task | Text generation |
+| Task | Text generation and bounded retrieval-backed answers |
 | Technology | Hosted LLM API (Anthropic), model version pinned in RunConfig |
-| Input | DecisionRecord fields plus reason-code documentation. Nothing else |
-| Output | Plain-English rationale for a logged decision; narrative over precomputed failure-cluster statistics |
+| Input | DecisionRecord fields plus reason-code documentation for explanations; a hashed evidence manifest for query answers |
+| Output | Plain-English rationale for a logged decision; narrative over precomputed failure-cluster statistics; bounded answers over cited artifacts |
 | Cost | Estimated $10 to $30 per month, billed separately from any consumer subscription |
 
 **Constraints.**

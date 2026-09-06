@@ -216,7 +216,7 @@ An `asset_class: option` RunConfig with a `walk_forward` block **must be rejecte
 `generate_candidates(features, bars) -> list[CandidateTrade]`. Primary: momentum breakout, full rigor. Secondary: MA trend, mean reversion - backtest-only, labeled exploratory. **AC:** same data + config ⇒ byte-identical candidate list; the harness refuses a graded ablation for any `tier: secondary` strategy.
 
 ### 5.4 Regime Classifier
-Per-bar regime probabilities; 3 trend states + binary volatility flag. Logistic regression baseline → RF/XGBoost. **AC:** walk-forward only across ~14 folds (equity) or ~4 (crypto); calibration curve + Brier per fold; M1-vs-B2 ablation; **per-regime and per-volatility-state breakdown**; Model Card records the feed **and asset class**; **no options-trained variant exists** (§5.6).
+Per-bar regime probabilities; 3 trend states + binary volatility flag. The built model is hand-written logistic regression; RF/XGBoost remain behind the classifier seam only if later evidence shows model capacity is the constraint. **AC:** walk-forward only across ~14 folds (equity) or ~4 (crypto); calibration curve + Brier per fold; M1-vs-B2 ablation; **per-regime and per-volatility-state breakdown**; Model Card records the feed **and asset class**; **no options-trained variant exists** (§5.6).
 
 ### 5.5 Signal-Quality Model
 Scores each CandidateTrade → `{p_profit, p_target_before_stop, model_version}`. Labels from simulated outcomes under the evaluation cost model; probabilities calibrated. **Feature set contingent on the §5.2 verdict.**

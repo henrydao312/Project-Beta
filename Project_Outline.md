@@ -73,7 +73,8 @@ and the text was wrong, so the text moves:
 | **Graded secondary** | **Crypto (BTC/USD)** - same pipeline, ~4 walk-forward folds, fold count reported with every number (§7A) | Confirmed 2026-09-01 |
 | **Validated execution layer** | **Single-leg SPY options** - contract selection, liquidity screen, fill-feasibility study with a held-out test (§7A, §5.6) | Confirmed 2026-09-01 |
 | **Confirmed design, lightweight scope** | Multi-strategy toggle - MA trend and mean reversion behind the same interface (§5.3), backtest-only exploratory | Confirmed 2026-08-26 |
-| **Optional** | HMM regime comparison, **read-only trade query layer (§22.1)**, daily AI summary | Week 10 decision |
+| **Scoped workbench layer** | **Evidence manifest + grounded query layer (§22.1, PRD §5.11A)**: read-only, evidence-bounded questions over logs, fold results, failure clusters and precomputed sweeps | Weeks 6-10, gated on manifest grounding by end of Week 8 |
+| **Optional** | HMM regime comparison, daily AI summary | Week 10 decision |
 | **Excluded** | Live-money trading, RL, autonomous LLM trading, tick data, SEC-filing RAG, AI-controlled risk rules, **news/sentiment gate (dropped 2026-08-31)**, **generative what-if scenarios (§22.1 - rejected on grounding grounds, not scope)** | Out of scope permanently |
 
 **Named fallback checkpoints:**
@@ -81,7 +82,8 @@ and the text was wrong, so the text moves:
 - Regime classifier not calibrated and ablated against B2 by **end of Week 6** → the options overlay is reduced to a live paper-forward demonstration.
 - **Week 6, graded-options gate:** if the equity core is running end-to-end - B1→B2→M1→M2 across 14 folds, with the risk engine and execution simulator - graded options *may* be revisited (§7B). If not, options stays a validated execution layer and moves to the post-course phase.
 - Paper loop not running end-to-end by **end of Week 8** → the secondary-strategy toggle is dropped; Week 8 goes to the alpha.
-- Release candidate not containerized and reproducible by **end of Week 11** → the query layer is off the table.
+- Evidence manifest and widened grounding not merged by **end of Week 8** → the query layer is cut and the dashboard ships with static explanations.
+- Release candidate not containerized and reproducible by **end of Week 11** → no new workbench features beyond what is already merged.
 
 ## 4. Core Pipeline
 
@@ -146,7 +148,7 @@ Dropped features stay in the registry with `status="dropped"` rather than being 
 
 ### 5.4 LLM Trade-Explanation Agent (required)
 
-Converts the decision log into readable rationales. **Grounding rule:** only fields present in the decision log; never alters trading logic, never makes buy/sell decisions. *This is also what keeps the project outside the LLM provider's high-risk "financial decisions" category (§20.1).* The optional read-only query layer extends this agent - see §22.1.
+Converts the decision log into readable rationales. **Grounding rule:** only fields present in the decision log; never alters trading logic, never makes buy/sell decisions. *This is also what keeps the project outside the LLM provider's high-risk "financial decisions" category (§20.1).* The workbench query layer extends this principle from one record to a hashed evidence manifest - see §22.1.
 
 ### 5.5 Failure-Analysis Assistant (required)
 
@@ -283,8 +285,8 @@ Every RunConfig, results table and Model Card records its feed **and its asset c
 | Language | Python 3.11+ |
 | Data / broker | **Alpaca Trading API, Basic (free), dual-feed (§9)** - $0 |
 | Data handling | pandas, pyarrow (Parquet), hashed datasets |
-| Classical ML | scikit-learn, XGBoost |
-| LLM | Hosted API (Claude), pinned version - explanation + failure narrative only |
+| Classical ML | Hand-written logistic regression baseline; classifier seam for later RF/XGBoost only if evidence says model capacity is the constraint |
+| LLM | Hosted API (Claude), pinned version - explanation, failure narrative and bounded evidence-query answers |
 | Frontend | Browser UI served locally (Streamlit or equivalent) - §22.3 |
 | Testing / CI | pytest, GitHub Actions |
 | Packaging | Docker (Wk 12) |
@@ -378,10 +380,10 @@ Results regenerate from a clean clone using documented config and the documented
 | 3–4 | Baselines + harness | B1/B2 running, walk-forward framework (~14 folds), cost model, metrics suite, B1/B2 results, **Data Card**, **halt control (§8A)** built with the risk engine | - |
 | 5 | Regime prototype | Regime classifier (M1) first-cut wired end-to-end | **Milestone 2 - end of Wk 5** |
 | 6 | Regime intelligence | Labeling finalized, calibrated, M1 vs. B2 ablation. **Fallback checkpoint + graded-options gate (§7A)** | - |
-| 7–8 | Signal-quality intelligence | Candidate-trade dataset, quality model (features per the §5.2 verdict), calibration, M2 ablation. **Fallback checkpoint** | - |
+| 7–8 | Signal-quality intelligence | Candidate-trade dataset, quality model (features per the §5.2 verdict), calibration, M2 ablation; **evidence manifest + widened grounding for the query layer**. **Fallback checkpoint, including the query-layer cut line** | - |
 | 9 | **ALPHA - Milestone 3** | End-to-end on the paper account via IEX, **halt control live**, running unattended from a non-protected folder (§9C). **Model Cards + System Card** | **Milestone 3 - end of Wk 9** |
 | 9–10 | Cross-asset tracks | Crypto secondary run (~4 folds, §7A); **options execution layer** - contract selection, liquidity screen, fill-feasibility study (§5.6) | - |
-| 10 | Gates · safety | Go/no-go on the query layer. **Red-team pass (§20.2), targeting the explanation service** | - |
+| 10 | Gates · safety | Query layer wired only if manifest grounding merged; **red-team pass (§20.2), targeting the explanation service and query layer** | - |
 | 11–12 | Interpretability + robustness + release candidate | Explanation agent, failure clustering, targeted tests, robustness suite, final results, architecture diagram, quick-start docs, fresh-clone test, **replay mode (§19.5)**, demo script, **demo video draft**, **container**, **latency & cost report**, **user-impact run**. **Fallback checkpoint** | **Milestone 4 - end of Wk 12** |
 | 13 | Polish for portfolio | Package repo/demo/report; no new features | - |
 | 14 | Ship | Final demo video, report, live presentation. **Second user-impact run** | **Final Presentation - end of Wk 14** |
@@ -540,7 +542,7 @@ Read against published terms. **Good-faith reading, not legal advice.**
 | **4** | **FinBERT** | No license declared on the model card; upstream repo Apache-2.0 covers **code**, not weights | ✅ **MOOT as of 2026-08-31** - no sentiment model is in scope. Closed by removal, not substitution |
 | **5** | **Hosted LLM - outputs** | Consumer terms: *"we assign to you all of our right, title, and interest - if any - in Outputs."* Commercial §B: *"Customer... owns its Outputs"*; *"Anthropic may not train models on Customer Content from Services"* | Explanations can be published. **Both agreements apply.** Pin the model version |
 | **6** | **Hosted LLM - usage policy** | Finance is a High-Risk Use Case: *"financial decisions, including investment advice..."* | **Compliant by design.** The LLM never makes or influences a trade decision (§19.1 steps 6–8); it narrates a logged decision. No external consumers. **The strongest point in the charter:** the constraint chosen for evaluation integrity is what keeps the system outside the high-risk category |
-| *(7)* | scikit-learn, XGBoost, pandas, pyarrow | Permissive OSS (BSD-3 / Apache-2.0 family) | Record resolved licenses in the dependency manifest |
+| *(7)* | numpy, pandas, pyarrow | Permissive OSS (BSD-3 / Apache-2.0 family) | Record resolved licenses in the dependency manifest. scikit-learn and XGBoost are not current dependencies |
 
 **Own-repo license: MIT.** **Still open:** Professional / Non-Professional status - no such document exists in the account (checked 2026-08-31); resolve by asking Alpaca support in writing.
 
@@ -677,14 +679,15 @@ Confirmed against the later branches: no need to read or write external systems 
 
 ### 22.6 Part III - AI task inventory and technology selection
 
-**Four tasks** - the news gate's conditional extraction is gone as of Rev 11.
+**Five tasks** - the news gate's conditional extraction is gone as of Rev 11; the workbench query layer was added in Rev 13.
 
 | # | Step in the user flow | AI task | Technology | Build or buy |
 |---|---|---|---|---|
-| 1 | Classify current market conditions | **Classification** (tabular, not text) | Logistic regression → RF / XGBoost, local | **Build** |
-| 2 | Score a candidate trade's quality | **Classification** (tabular) | XGBoost, local | **Build** |
+| 1 | Classify current market conditions | **Classification** (tabular, not text) | Hand-written logistic regression, local | **Build** |
+| 2 | Score a candidate trade's quality | **Classification** (tabular) | Hand-written logistic regression, local; RF/XGBoost only if later evidence shows model capacity is the constraint | **Build** |
 | 3 | Explain each trade decision in plain English | **Text generation** | Hosted LLM API, pinned version | **Buy** |
 | 4 | Narrate computed failure clusters | **Text generation** over precomputed statistics | Hosted LLM API | **Buy** |
+| 5 | Answer bounded questions over the evidence manifest | **Retrieval + text generation** over a closed, hashed, system-authored corpus | **Buy** the model; **build** the manifest, retrieval boundary and verifier |
 
 **Not used, and stated deliberately:** information retrieval / RAG (no document corpus), speech recognition, text-to-speech, vision/OCR, **and text classification / structured extraction - removed with the news gate.** The task inventory is short by design and got shorter by decision.
 
