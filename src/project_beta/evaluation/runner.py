@@ -337,6 +337,52 @@ def _test_window(
     return FoldReturns(fold=fold, days=b1.days, returns=returns)
 
 
+@dataclass(frozen=True)
+class SkippedFold:
+    """A fold the data could not support, kept rather than dropped.
+
+    A skipped fold that leaves no trace turns a smaller study into a larger
+    one's label: fourteen folds were configured, eleven ran, and the results
+    row still says fourteen unless something carries the difference.
+    """
+
+    index: int
+    test_start: date
+    test_end: date
+    error: str
+    message: str
+
+    def provenance(self) -> dict[str, Any]:
+        return {
+            "index": self.index,
+            "test_start": self.test_start,
+            "test_end": self.test_end,
+            "error": self.error,
+            "message": self.message,
+        }
+
+
+@dataclass(frozen=True)
+class WalkForward:
+    """The folds that ran, and the folds that did not, with the reason."""
+
+    runs: list[FoldRun]
+    skipped: list[SkippedFold]
+
+    @property
+    def expected(self) -> int:
+        """Folds the configuration yielded, whether or not they ran."""
+        return len(self.runs) + len(self.skipped)
+
+    def provenance(self) -> dict[str, Any]:
+        return {
+            "n_folds_expected": self.expected,
+            "n_folds_ran": len(self.runs),
+            "n_folds_skipped": len(self.skipped),
+            "skipped_folds": [s.provenance() for s in self.skipped],
+        }
+
+
 def run_walk_forward(
     bars: Sequence[Bar],
     frame: FeatureFrame,
@@ -345,7 +391,7 @@ def run_walk_forward(
     *,
     starting_equity: float = STARTING_EQUITY,
     stress_factors: Sequence[float] = STRESS_FACTORS,
-) -> list[FoldRun]:
+) -> WalkForward:
     """Every fold the configuration yields, in order, at every cost level.
 
     Refuses before it starts if the run may not make a performance claim: an
@@ -353,6 +399,7 @@ def run_walk_forward(
     """
     require_performance_claim(config, strategy)
     runs: list[FoldRun] = []
+    skipped: list[SkippedFold] = []
     for fold in generate_folds(config):
         try:
             runs.append(
@@ -362,12 +409,21 @@ def run_walk_forward(
                     stress_factors=stress_factors,
                 )
             )
-        except (FoldTooThin, SignalQualityError):
+        except (FoldTooThin, SignalQualityError) as exc:
             # A fold with no test bars is a data gap, not a result. It is
-            # skipped and the count travels with the figures rather than being
-            # quietly absorbed.
-            continue
-    return runs
+            # skipped, and it is recorded with its index and its reason, so
+            # the expected-versus-ran count travels with the figures instead
+            # of being quietly absorbed into a smaller study.
+            skipped.append(
+                SkippedFold(
+                    index=fold.index,
+                    test_start=fold.test_start,
+                    test_end=fold.test_end,
+                    error=type(exc).__name__,
+                    message=str(exc),
+                )
+            )
+    return WalkForward(runs=runs, skipped=skipped)
 
 
 # ------------------------------------------------------------------ pooling
@@ -402,23 +458,23 @@ def evaluate(
     stress_factors: Sequence[float] = STRESS_FACTORS,
     condition_3_factor: float = CONDITION_3_FACTOR,
     resamples: int | None = None,
-) -> tuple[list[Comparison], list[FoldRun]]:
+) -> tuple[list[Comparison], WalkForward]:
     """The whole graded run: walk forward, then the four-rung ladder.
 
     This is the entry point that closes the loop. Before it existed, every
     primary comparison failed condition 3 with "no cost-stress run supplied" -
     which was correct behaviour and a permanently unmeetable bar.
     """
-    runs = run_walk_forward(
+    walk = run_walk_forward(
         bars, frame, config, strategy,
         starting_equity=starting_equity,
         stress_factors=stress_factors,
     )
-    if not runs:
-        return [], runs
+    if not walk.runs:
+        return [], walk
 
-    base = base_folds(runs)
-    stress = stressed_folds(runs, condition_3_factor)
+    base = base_folds(walk.runs)
+    stress = stressed_folds(walk.runs, condition_3_factor)
     cost_stress_returns = {
         system: pool(stress, system) for system in LADDER
     }
@@ -429,4 +485,4 @@ def evaluate(
         cost_stress_returns=cost_stress_returns,
         resamples=resamples,
     )
-    return comparisons, runs
+    return comparisons, walk

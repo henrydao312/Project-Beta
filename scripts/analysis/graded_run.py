@@ -278,9 +278,14 @@ def run(config: RunConfig, *, resamples: int, skip_diagnostics: bool) -> dict:
             print(f"  {k:36s} {v if not isinstance(v, float) else f'{v:.3f}'}")
 
     print(f"\n--- walk-forward, {resamples:,} resamples ---")
-    comparisons, runs = evaluate(bars, frame, config, strategy, resamples=resamples)
+    comparisons, walk = evaluate(bars, frame, config, strategy, resamples=resamples)
+    runs = walk.runs
     if not runs:
         raise SystemExit("no folds ran; nothing to report")
+    if walk.skipped:
+        print()
+        for s_ in walk.skipped:
+            print(f"  fold {s_.index:>2} SKIPPED  {s_.error}: {s_.message}")
 
     folds = base_folds(runs)
     print()
@@ -321,6 +326,7 @@ def run(config: RunConfig, *, resamples: int, skip_diagnostics: bool) -> dict:
         "dataset_hash": result.report.dataset_hash,
         "n_bars": len(bars),
         "n_folds": len(runs),
+        "folds_expected_vs_ran": walk.provenance(),
         "resamples": resamples,
         "redundancy": diagnostics,
         "summaries": {k: v.to_dict() for k, v in summaries.items()},

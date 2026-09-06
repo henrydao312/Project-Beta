@@ -437,6 +437,21 @@ def run_backtest(
         if is_last_bar_of_day:
             close_day()
 
+    # -- pending entries the window outlived --------------------------
+    # A candidate approved near the end of the window has a fill index past
+    # the last bar, so the loop ends with it still queued. Dropping it would
+    # break the contract that every decision the system makes is written,
+    # and it would undercount rejections at exactly the fold boundaries where
+    # the count matters most. The data could not honour the decision; that is
+    # a rejection with a reason, not an absence.
+    for _fill_index, candidate, verdict, _quantity in pending:
+        record = _record_for(candidate, config, verdict, system)
+        record["decision"] = "rejected"
+        record["decision_reason_codes"] = [*verdict.reason_codes, "NO_BAR_AT_FILL"]
+        record["instrument"]["tradeable"] = False
+        decisions.append(record)
+    pending = []
+
     daily_returns = _to_daily_returns(day_end_equity, starting_equity)
     return BacktestResult(
         system=system,

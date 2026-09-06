@@ -432,7 +432,7 @@ def test_each_rung_trades_a_subset_of_the_one_below(world) -> None:
     """M2 filters M1, which filters B2. That nesting is what makes the
     comparison paired in the statistical sense."""
     bars, frame, config, strategy = world
-    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=())
+    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=()).runs
     assert runs, "the fixture must yield at least one fold"
     for run in runs:
         assert set(run.base.returns) == {"B1", "B2", "M1", "M2"}
@@ -534,9 +534,32 @@ def test_cost_stress_re_prices_rather_than_refits(world) -> None:
     assert without.base.returns == with_stress.base.returns
 
 
+def test_a_fold_that_cannot_run_is_recorded_rather_than_dropped(world) -> None:
+    """A silently skipped fold turns a smaller study into a larger one's label.
+
+    Truncating the bars leaves the later folds with no test data. Those folds
+    must come back as skipped, with an index and a reason, and the expected
+    count must still equal the number the configuration yielded.
+    """
+    bars, frame, config, strategy = world
+    cut = len(bars) // 2
+    walk = run_walk_forward(
+        bars[:cut], frame, config, strategy, stress_factors=()
+    )
+    assert walk.skipped, "truncated data must leave at least one fold unrun"
+    assert walk.expected == len(walk.runs) + len(walk.skipped)
+    first = walk.skipped[0]
+    assert first.error in {"FoldTooThin", "SignalQualityError"}
+    assert first.message
+    provenance = walk.provenance()
+    assert provenance["n_folds_expected"] == walk.expected
+    assert provenance["n_folds_ran"] == len(walk.runs)
+    assert len(provenance["skipped_folds"]) == len(walk.skipped)
+
+
 def test_a_missing_stress_factor_is_named_rather_than_assumed(world) -> None:
     bars, frame, config, strategy = world
-    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=(2.0,))
+    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=(2.0,)).runs
     assert stressed_folds(runs, 2.0)
     with pytest.raises(KeyError, match=r"3\.0x cost-stress"):
         stressed_folds(runs, 3.0)
@@ -548,10 +571,10 @@ def test_condition_three_can_now_be_evaluated(world) -> None:
     permanently unmeetable bar. The condition must now pass or fail on
     evidence."""
     bars, frame, config, strategy = world
-    comparisons, runs = evaluate(
+    comparisons, walk = evaluate(
         bars, frame, config, strategy, stress_factors=(2.0,), resamples=100
     )
-    assert runs and comparisons
+    assert walk.runs and comparisons
     primary = [c for c in comparisons if c.is_primary]
     assert len(primary) == 1
     assert primary[0].cost_stress_point is not None
@@ -653,7 +676,7 @@ def test_base_folds_and_stressed_folds_stay_aligned(world) -> None:
     """The paired bootstrap needs the same days in the same order, and a
     stressed series that drifted would widen every interval invisibly."""
     bars, frame, config, strategy = world
-    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=(2.0,))
+    runs = run_walk_forward(bars, frame, config, strategy, stress_factors=(2.0,)).runs
     for base, stressed in zip(base_folds(runs), stressed_folds(runs, 2.0), strict=True):
         assert base.days == stressed.days
         assert set(base.returns) == set(stressed.returns)
