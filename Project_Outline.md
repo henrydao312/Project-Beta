@@ -38,7 +38,7 @@ and the text was wrong, so the text moves:
 - **Main workflow:** Market data → validation → features → rule-based signal → regime classification → signal-quality scoring → risk engine → simulated/paper execution → decision log → explanation → dashboard.
 - **Expected value:** Improved risk-adjusted performance and reduced drawdown versus the identical unfiltered strategy, with a transparent, auditable rationale for every decision.
 - **User-relevant success criteria:**
-  1. The AI-filtered strategy improves at least one prespecified risk-adjusted metric (Sharpe or maximum drawdown) versus the identical rule-based strategy in walk-forward testing, net of costs - **or** produces a rigorously supported negative result.
+  1. The AI-filtered strategy improves the prespecified primary metric, **annualised Sharpe net of costs**, versus the identical rule-based strategy in walk-forward testing, net of costs - **or** produces a rigorously supported negative result.
   2. Every accepted, reduced, delayed, or rejected trade has a structured explanation that accurately reflects the true model and risk state.
   3. A reader of the dashboard can correctly state why the system took (or refused) a given trade, unaided - measured, not asserted (§10.2).
 
@@ -48,12 +48,12 @@ and the text was wrong, so the text moves:
 
 **The audience.** Discretionary retail traders and junior quantitative researchers who want systematic, explainable, risk-controlled signal filtering - not a black box.
 
-**The proposed idea.** An AI-assisted paper-trading system: a market-regime classifier and signal-quality model filter a transparent, rule-based momentum-breakout strategy on 5-minute SPY bars, a deterministic risk engine enforces limits, and every trade decision gets a grounded, plain-English explanation. The same pipeline extends to BTC/USD as a secondary track and to single-leg SPY options as an execution layer.
+**The proposed idea.** An **interactive AI strategy workbench for paper trading**. Underneath it a market-regime classifier and a signal-quality model filter a transparent, rule-based momentum-breakout strategy on 5-minute SPY bars, and a deterministic risk engine enforces limits. On top of it the user interrogates what the system did and why: every decision carries a grounded plain-English explanation, and a read-only query layer answers questions over the decision log, the fold results, the failure clusters and precomputed parameter sweeps, with every claim cited to an artifact. The same pipeline extends to BTC/USD as a secondary track and to single-leg SPY options as an execution layer.
 
-**What makes it stand out.** Most public "AI trading bots" let an LLM make the trade call directly and show one cherry-picked backtest. PROJECT BETA never lets AI touch trading logic - it only gates a transparent rule-based strategy - and every explanation is grounded in a logged decision (audited: ≥50-sample grounding check). Success is measured with an ablation ladder (§7) isolating what each AI component adds, under walk-forward validation, and a rigorous negative result counts as a legitimate outcome (§18). **And each asset class makes only the claim its data can support (§7A)** - a discipline most student projects skip. The differentiation is AI-engineering discipline - auditability, grounding, honest ablation - not a claim to have found a better trading strategy.
+**What makes it stand out.** Most public "AI trading bots" let an LLM make the trade call directly and show one cherry-picked backtest. PROJECT BETA never lets AI touch trading logic - it only gates a transparent rule-based strategy - and every explanation is grounded in a logged decision (audited: ≥50-sample grounding check). Success is measured with an ablation ladder (§7) isolating what each AI component adds, under walk-forward validation, and a rigorous negative result counts as a legitimate outcome (§18). **And each asset class makes only the claim its data can support (§7A)** - a discipline most student projects skip. The differentiation is **grounded interrogation**: the user can ask the system why it did what it did, where the strategy loses money, and which filter is actually earning its complexity, and every answer traces back to a logged decision or a computed result rather than to model intuition. **A product whose only value is profitability is too brittle to build on**; the value here is helping the user evaluate what the evidence supports. It is not a claim to have found a better trading strategy.
 
 **Success criteria.**
-- *Primary (offline):* the filters improve Sharpe or maximum drawdown over the unfiltered baseline (B2), net of costs, in walk-forward testing - or the negative result is rigorously characterized.
+- *Primary (offline):* the filters improve **annualised Sharpe, net of costs**, over the unfiltered baseline (B2) in walk-forward testing - or the negative result is rigorously characterized. **Maximum drawdown is reported as a secondary metric with an interval and no claim language.** One primary metric, locked in `EVALUATION_PROTOCOL.md` before any model was trained; "Sharpe or drawdown" would be two attempts at one claim.
 - *Primary (user-impact):* an unaided reader identifies the current regime, open positions, and the reason for the most recent decision (§10.2).
 - *Secondary:* 100% of sampled explanations audit as grounded; the system runs live, unattended, on an Alpaca paper account.
 
@@ -337,7 +337,7 @@ Two layers, both necessary.
 
 ### 10.1 Offline metrics (primary results layer)
 
-**Trading metrics - the headline.** Total and annualized return, Sharpe, Sortino, maximum drawdown, Calmar, profit factor, win rate, average win/loss, turnover, exposure, trade count, cost sensitivity. Prespecified primary comparison: **M-tier vs. B2 on Sharpe or maximum drawdown, net of costs, walk-forward, on equities.**
+**Trading metrics - the headline.** Total and annualized return, Sharpe, Sortino, maximum drawdown, Calmar, profit factor, win rate, average win/loss, turnover, exposure, trade count, cost sensitivity. Prespecified primary comparison: **M-tier vs. B2 on annualised Sharpe, net of costs, walk-forward, on equities.** Maximum drawdown is secondary, reported with an interval and no claim language.
 
 **ML metrics - supporting.** Precision, recall, F1, ROC-AUC, PR curves, per-regime confusion matrices, calibration, Brier score.
 
@@ -374,7 +374,7 @@ Results regenerate from a clean clone using documented config and the documented
 
 | Weeks | Internal focus | Deliverables | Official due date |
 |---|---|---|---|
-| 1–2 | Foundations | Repo checklist (six items); **vendor-agnostic data provider (§7B seam 1)**; data pipeline + validation (§9 architecture, RTH filter, coverage rules, hashing); feature pipeline; **§5.2 feed-transfer experiment - the first build task**; leakage checklist; four logs; **§20 Responsible AI charter**; **§21 focus areas**; **§22 AI application design**; pitch artifact | **Milestone 1 - end of Wk 2** |
+| 1–2 | Foundations | Repo checklist (six items); **vendor-agnostic data provider (§7B seam 1)**; data pipeline + validation (§9 architecture, RTH filter, coverage rules, hashing); feature pipeline; **§5.2 feed-transfer experiment - the first build task**; leakage checklist; four logs; **§20 Responsible AI charter**; **§21 focus areas**; **§22 AI application design**; pitch artifact | **Milestone 1 - Fri 9/11, 11:59 p.m. ET** |
 | 3–4 | Baselines + harness | B1/B2 running, walk-forward framework (~14 folds), cost model, metrics suite, B1/B2 results, **Data Card**, **halt control (§8A)** built with the risk engine | - |
 | 5 | Regime prototype | Regime classifier (M1) first-cut wired end-to-end | **Milestone 2 - end of Wk 5** |
 | 6 | Regime intelligence | Labeling finalized, calibrated, M1 vs. B2 ablation. **Fallback checkpoint + graded-options gate (§7A)** | - |
@@ -471,7 +471,7 @@ The prespecified hypothesis is that regime and quality filtering improve risk-ad
 
 ### 19.1 How the trading works - plain-language pipeline
 
-Not an interactive advisor - a closed-loop paper-trading system a user watches, then reviews.
+**Not an advisor. An instrument.** The user interrogates the system and the evidence behind it, and every answer is grounded in a logged decision, a computed result or a precomputed sweep. The system never recommends a trade, and it never proposes a change to trading logic.
 
 1. **Data pipeline** pulls SPY 5-minute bars, validates, filters to regular hours. No AI.
 2. **Feature engineering** computes indicators. No AI - deterministic math.
@@ -546,15 +546,16 @@ Read against published terms. **Good-faith reading, not legal advice.**
 
 **Sources:** [Alpaca T&C](https://files.alpaca.markets/disclosures/library/TermsAndConditions.pdf) · [Alpaca Customer Agreement](https://files.alpaca.markets/disclosures/library/AcctAppMarginAndCustAgmt.pdf) · [NASDAQ OMX Subscriber Agreement](https://files.alpaca.markets/disclosures/library/NASDAQ+OMX+Global+Subscriber+Agreement.pdf) · [NYSE Display Services](https://files.alpaca.markets/disclosures/library/NYSE+Market+Data+Display+Services+Agreement.pdf) · [Massive/Polygon options pricing](https://massive.com/options) · [Anthropic Consumer Terms](https://www.anthropic.com/legal/consumer-terms) · [Anthropic Commercial Terms](https://www.anthropic.com/legal/commercial-terms) · [Anthropic Usage Policy](https://www.anthropic.com/legal/aup)
 
-### 20.2 Safety plan - top 3 harms, each with a guardrail and a test
+### 20.2 Safety plan - top 4 harms, each with a guardrail and a test
 
 | # | Harm | Guardrail | Test |
 |---|---|---|---|
 | **1** | **Financial harm through misuse.** Someone clones the repo, points it at a live account, and loses real money - or reads the dashboard as investment advice | No live-money code path; paper endpoints and credentials only (§8). **Halt control (§8A)**. README and dashboard carry "paper trading only; not investment advice." No performance claim without its cost model and walk-forward caveat | Unit test: the execution layer **rejects** a non-paper endpoint or live credentials. CI-asserted disclaimer strings. **Halt tests per §8A** |
-| **2** | **Over-trust in a wrong or invented explanation** - the failure mode that makes an "explainable" system worse than an opaque one | Hard grounding rule: prompt contains only DecisionRecord fields plus reason-code documentation. Reason codes from a fixed enum. **The optional query layer inherits this rule unchanged** | Grounding audit on ≥50 random explanations. Target 100%; **any hallucinated claim is a release blocker.** Plus the §10.2 trust check |
+| **2** | **Over-trust in a wrong or invented explanation** - the failure mode that makes an "explainable" system worse than an opaque one | Hard grounding rule: prompt contains only DecisionRecord fields plus reason-code documentation. Reason codes from a fixed enum. **The query layer inherits this rule, widened to a hashed evidence manifest (§5.11A) - see Harm 4** | Grounding audit on ≥50 random explanations. Target 100%; **any hallucinated claim is a release blocker.** Plus the §10.2 trust check |
 | **3** | **Misleading performance claims.** Leakage, overfitting, an under-modelled cost assumption, an unstated feed limitation, **or a secondary track's result read as if it carried the core's evidentiary weight** | Walk-forward only, point-in-time features and instrument universe (§11), cached AI outputs, prespecified primary metric fixed before M1 experiments, negative results framed as legitimate (§18). **Feed, asset class and fold count recorded wherever results appear (§7A)** | Leakage test (shift-forward invariance); backtest cache-only enforcement; 2–3× cost-stress runs reported *alongside* headline numbers; **schema test asserting every results row carries `asset_class` and `n_folds`** |
+| **4** | **A conversational surface that answers past its evidence, or is steered into advising** (new with §5.11A). Three modes: **injection through user text**; an answer composing many artifacts that drifts beyond what any of them support; an answer phrased as a recommendation. *Today injection is impossible **by construction**, because every prompt is assembled from record fields and no text the system did not author reaches a model. The query layer ends that property, so it must be replaced by a defence* | Read-only and evidence-bounded: retrieval only from the hashed manifest, **no tools, no market access, no write path, no open-ended chat**. User text is carried in a delimited slot the system prompt declares to be data, never instruction. **Refusal path for trade recommendations and proposed strategy changes, as a code path rather than a prompt instruction.** Every claim cites an artifact, record or sweep-cell id | **Adversarial query corpus**: every item refused or answered from evidence only, none causing an instruction in user text to be executed. Manifest grounding: every numeral and state label traces to a cited artifact. **Recommendation-request suite asserts refusal**, including requests phrased as evidence questions. An answer carrying an uncited claim fails |
 
-**The Week 10 red-team target is the explanation service.** The news gate was the planned prompt-injection surface; with it dropped, the pass targets the explanation service, exercising the grounding rule against adversarial log content. *If the query layer ships, user-typed text becomes a second injection surface and joins this pass.*
+**The Week 10 red-team target is the explanation service and the query layer.** The news gate was the planned prompt-injection surface; with it dropped, the pass targets the explanation service against adversarial log content, **and §5.11A against adversarial user text, which is the system's only operator-controlled input**.
 
 ### 20.3 Fairness note - three steps (Rev 10)
 
@@ -579,14 +580,15 @@ Read against published terms. **Good-faith reading, not legal advice.**
 |---|---|---|---|
 | Alpaca API key / secret, paper account ID | Fetch data, place paper orders | Life of project; **rotated if exposed - rotated 2026-09-01** | **Environment variables only - never committed.** `.gitignore` covers `.env` and `.env.*`. *Alpaca displays the secret once and does not retain it - a lost secret can only be replaced, and replacement invalidates every stored copy* |
 | Decision log (DecisionRecords) | Single source of truth | Semester + final report | Market state, model outputs, reason codes. **No personal data.** *Contains prices - see §20.5* |
-| Cached LLM prompts/responses | Reproducibility and cost control | Semester | Assembled from DecisionRecord fields only |
+| Cached LLM prompts/responses | Reproducibility and cost control | Semester | Assembled from DecisionRecord fields only, **except query-layer prompts - see the next row** |
+| **User queries to the query layer (§5.11A)** | Reproducibility, cost control, and the grounding audit trail | Semester | **Local only.** Stored with the manifest hash and the artifact ids cited, so an answer is reproducible. Text leaves the machine only as the prompt itself. The operator is the only user and is told in the interface that queries are sent to a hosted model |
 | Usability-check notes (§10.2) | Evidence for the user-impact metric | Until the final report | Responses only, not participant identity |
 
-**Minimization principle:** the system collects nothing about anyone. Single-user, single-account, observational - the correct posture is **"never start collecting it."**
+**Minimization principle:** the system collects nothing about anyone **except the operator's own queries**, which stay local. Single-user, single-account, observational - the correct posture is **"never start collecting it,"** and the one exception is recorded above rather than absorbed.
 
-**Data-subject rights.** **Not applicable here, and stated rather than silently omitted:** there are no external users and no personal data. If the query layer ships, user-typed queries become the first genuinely new data class and this row needs a retention line before it does.
+**Data-subject rights.** **Not applicable here, and stated rather than silently omitted:** there are no external users, and the only person whose data exists is the operator, who controls it directly. **The query layer (§5.11A) made this concrete rather than hypothetical:** user-typed queries are the first genuinely new data class, and they now carry their own row above.
 
-**Third-party API data policies.** The LLM provider's commercial terms state *"Anthropic may not train models on Customer Content from Services"*, and prompts carry only market and model state.
+**Third-party API data policies.** The LLM provider's commercial terms state *"Anthropic may not train models on Customer Content from Services"*. **A structural claim here had to be weakened, and the weakening is stated rather than quietly dropped.** Before §5.11A, prompts *structurally could not* contain personal information, because every prompt was assembled from DecisionRecord fields. With a query layer the operator can type anything into a prompt bound for a hosted model, so the guarantee becomes a discipline rather than a structure: the operator is the sole user and data subject, is warned in the interface, and query text is never composed from anything but what they typed and the cited artifacts.
 
 ### 20.5 Publication constraints - what may and may not go in the public repo
 
@@ -625,11 +627,11 @@ Read against published terms. **Good-faith reading, not legal advice.**
 
 ### 22.1 Part I - Interaction model and the role of AI
 
-**Interaction style: a static dashboard.** **Access surface: browser, served locally.**
+**Interaction style: hybrid.** A dashboard for state and results, plus a **read-only conversational analysis surface** over logged and precomputed evidence. **Access surface: browser, served locally.**
 
-**Role of AI: background automation.** The AI runs unattended inside a closed loop: it classifies the market, scores candidate trades, and afterwards writes explanations. The user watches and reviews; they never converse with it to get a trade decision.
+**Role of AI: background automation, plus non-advisory analysis.** The AI runs unattended inside the closed loop, where it classifies the market, scores candidate trades and afterwards writes explanations, and **it never converses with the user to reach a trade decision**. Separately, and outside the loop, the user can ask questions of the evidence the loop produced: why a decision came out as it did, where the strategy loses money, which filter is earning its complexity, how this week's paper behaviour compares with the backtest. That surface is read-only, evidence-bounded and non-advisory: it explains and compares logged or computed evidence, and it refuses to recommend a trade or propose a change to trading logic (§5.11A).
 
-**Optional third mode: on-demand helper.** The Week-10-gated query layer would add an "Ask AI" affordance over a selected logged decision. Read-only, same grounding rule, same audit.
+**The prerequisite, not a decoration.** The query layer is gated on **evidence-manifest grounding** (§5.11A): the checker must be generalised from one DecisionRecord to a hashed manifest of artifacts before any question is answered, the same order that put `grounding.py` before the explanation service. **Fallback at end of Week 8:** if the manifest and generalised grounding are not done, the query layer is cut and the dashboard ships with static explanations.
 
 **What is deliberately excluded.** **Generative what-if scenarios** are permanently out of scope. A counterfactual has **no logged referent**, so the LLM would either speculate - which this system is built not to do - or the grounding rule would have to be weakened. That rule is the project's central claim and the basis of a release-blocking audit (§20.2 Harm 2).
 
