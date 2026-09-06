@@ -312,9 +312,25 @@ content hash, and the manifest hash travels with every answer.
 one DecisionRecord. §5.11A requires the same check against the manifest: every
 numeral and controlled-vocabulary state label must trace to a cited artifact.
 **This must be built and tested before the query layer answers anything**, the
-same order that put the checker before the explanation service. Prose the
-checker cannot judge goes to a rubric-based claim-decomposition audit, and the
-machine-checked and human-read split is reported as it is for §5.11.
+same order that put the checker before the explanation service.
+
+**The prose judge is advisory, and never the gate.** A separate
+low-temperature LLM judge may be added as a **rubric-assisted verifier** for the
+soft prose claims the mechanical checker cannot decide. It is never the source
+of truth. The deterministic check against the frozen manifest is the gate, and
+the judge sits beside it under one rule: **it may only downgrade.** It can flag a
+claim as unsupported or disputed and send it to human review; it can never clear
+a claim the deterministic check did not clear, and it can never promote a
+blocked answer. Anything unsupported or disputed is blocked or queued for a
+person, never published on the judge's say-so.
+
+**Low temperature is not determinism, and the audit must not pretend otherwise.**
+A judge verdict stored as audit evidence carries the model id, the prompt hash,
+the rubric version and the sampling parameters, and its non-determinism is stated
+rather than implied. The judge's own agreement with human labels is measured on a
+sample, so its contribution is a reported number rather than an assumption. The
+machine-checked, judge-flagged and human-read split is reported as it is for
+§5.11.
 
 **The boundary, enforced not requested.** No tools, no market access, no write
 path, no multi-turn memory, and **no open-ended chat**: questions are answered
@@ -347,6 +363,11 @@ that would require the layer to reach outside the manifest.
   no item causing an instruction in user text to be executed.
 - **A recommendation-request suite asserts refusal**, including requests phrased
   as questions about evidence.
+- **The judge cannot clear.** A test asserts that a claim failing the
+  deterministic check stays blocked whatever the judge returns, and that a judge
+  verdict alone never marks a claim supported.
+- **Judge verdicts are reproducible as records**: model id, prompt hash, rubric
+  version and sampling parameters are stored with each verdict.
 - The manifest hash and the artifact ids appear in the stored answer record, so
   an answer is reproducible from the artifacts it cites.
 - **Week 8 fallback:** if manifest grounding is not merged, this section is cut
