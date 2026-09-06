@@ -12,7 +12,7 @@
 
 ## 1. Product Vision
 
-PROJECT BETA is an AI-assisted paper-trading research platform built as a two-person AI Capstone project on the **AI Engineering track**. AI augments - never replaces - a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible - **and every reported result states which asset class it came from and how many folds stand behind it.**
+PROJECT BETA is an **interactive AI strategy workbench for paper trading**, built as a two-person AI Capstone project on the **AI Engineering track**. AI augments - never replaces - a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation, and it gives the user a **read-only, evidence-bounded way to interrogate what the system did and what the evidence supports (§5.11A)**. The system is an instrument, not an advisor: it never recommends a trade and never proposes a change to trading logic. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible - **and every reported result states which asset class it came from and how many folds stand behind it.**
 
 ## 2. Goals and Non-Goals
 
@@ -20,7 +20,7 @@ PROJECT BETA is an AI-assisted paper-trading research platform built as a two-pe
 
 **Graded secondary:** crypto (BTC/USD) - same pipeline, ~4 folds, fold count reported with every figure.
 **Validated execution layer:** single-leg SPY options (§5.6) - no strategy-performance claim.
-**Optional:** read-only trade query layer (Week 10 gate - §5.11).
+**Scoped deliverable (Weeks 6-10):** the **evidence manifest and grounded query layer (§5.11A)**. Promoted from an optional Week 10 gate; it is the product's interaction surface, not a decoration. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any question is answered. **Fallback at end of Week 8:** if that is not done, the query layer is cut and the dashboard ships with static explanations. The guaranteed core above stands without it.
 
 **Non-goals (permanent):** live-money trading; reinforcement learning; autonomous LLM trading decisions; HFT/tick data; multiple fully-evaluated graded strategies; SEC-filing RAG; AI-controlled risk rules; **news/sentiment gate (dropped 2026-08-31)**; **generative what-if scenarios (§5.11 - excluded on grounding grounds, not scope)**.
 
@@ -283,7 +283,7 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 
 **New fields to cover (v3.0).** `asset_class` and the `instrument` block are assertable state: an explanation claiming a contract was tradeable when `tradeable: false` must fail the filter.
 
-**Optional query layer (Week 10 gate).** Read-only "ask about this decision" over a *selected, logged* record. **Inherits the grounding rule and the same output filter.**
+**Query layer.** Promoted out of this section: see **§5.11A**. It inherits this section's grounding rule and output filter, widened from one record to a hashed evidence manifest.
 
 **Explicitly out of scope: generative what-if.** Counterfactuals have no logged referent. *The permissible form, if ever built, is narration of a **precomputed** parameter sweep from §5.14.*
 
@@ -293,6 +293,64 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 - **Regression test on the label check:** a regime name appearing only as a key in `regime.probs` must **not** count as an asserted state. *This was a real defect, caught by the checker's own hallucination tests - the argument for writing those first.*
 - **A false `instrument.tradeable` claim raises.**
 - The drift canary passes, or its failure is investigated before results are published.
+
+### 5.11A Evidence Manifest & Grounded Query Layer (new, v3.1)
+
+**Responsibility.** Answer the user's questions about what the system did and
+what the evidence supports, over a fixed set of precomputed artifacts, with
+every claim cited. This is the product's interaction surface (Outline §22.1),
+not an optional chat affordance.
+
+**The manifest comes first.** A hashed, versioned `EvidenceManifest` naming
+exactly what may be cited: the decision-log slice, the fold table, the
+failure-cluster statistics (§5.13), and the parameter-sweep grid (§5.14).
+Artifacts are **precomputed**; nothing is computed at query time, so an answer
+can never depend on work the user cannot inspect. Each entry carries an id and a
+content hash, and the manifest hash travels with every answer.
+
+**Grounding, widened.** `project_beta.grounding` currently checks a text against
+one DecisionRecord. §5.11A requires the same check against the manifest: every
+numeral and controlled-vocabulary state label must trace to a cited artifact.
+**This must be built and tested before the query layer answers anything**, the
+same order that put the checker before the explanation service. Prose the
+checker cannot judge goes to a rubric-based claim-decomposition audit, and the
+machine-checked and human-read split is reported as it is for §5.11.
+
+**The boundary, enforced not requested.** No tools, no market access, no write
+path, no multi-turn memory, and **no open-ended chat**: questions are answered
+from a fixed taxonomy. The layer explains and compares logged or computed
+evidence. **It refuses to recommend a trade or propose a change to trading
+logic**, and refusal is a tested code path, not a prompt instruction.
+
+**User text is untrusted input.** This is the first place in the system where
+text it did not author reaches a prompt. Until now, prompt injection is
+impossible by construction because every prompt is assembled from record fields;
+that property ends here. User text is carried in a delimited slot the system
+prompt declares to be data, never instruction (§20.2 Harm 4).
+
+**In scope, the question taxonomy:** why a decision came out as it did; where
+the strategy loses money, over the cluster statistics; which rung of the ladder
+is earning its complexity, over the fold table; what a different threshold would
+have produced, over the **precomputed** sweep and never generated; and how the
+live paper run compares with the backtest distribution.
+
+**Out of scope, permanently:** generated counterfactuals with no computed
+referent (§5.11), recommendations, proposed strategy modifications, and anything
+that would require the layer to reach outside the manifest.
+
+**AC:**
+- **No answer is returned without passing manifest grounding**; a test asserts an
+  answer citing a value absent from the manifest raises.
+- **Every claim carries an artifact, record or sweep-cell id**; an answer with an
+  uncited claim fails.
+- **An adversarial query corpus** is refused or answered from evidence only, with
+  no item causing an instruction in user text to be executed.
+- **A recommendation-request suite asserts refusal**, including requests phrased
+  as questions about evidence.
+- The manifest hash and the artifact ids appear in the stored answer record, so
+  an answer is reproducible from the artifacts it cites.
+- **Week 8 fallback:** if manifest grounding is not merged, this section is cut
+  and §5.12 ships with static explanations. The cut is recorded, not silent.
 
 ### 5.12 Dashboard
 Current regime, open positions, equity curve, recent decisions with explanations, strategy-toggle panel, **cross-asset panel**, **halt status and kill switch**. **Requirements:** a persistent, non-dismissible "paper trading only - not investment advice" statement; results views display **asset class, feed, session and fold count**; **live vs. replay unambiguously labeled**; **each cross-asset panel states its tier**, so a viewer cannot mistake a 4-fold crypto figure or an options feasibility rate for a core result. **AC:** measured via Outline §10.2; disclaimer string CI-asserted; halt control reachable without leaving the main screen; tier labels CI-asserted.
@@ -344,14 +402,14 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 
 | Weeks | Internal focus | PRD modules due | Official milestone |
 |---|---|---|---|
-| 1–2 | Foundation | **§3B.1 provider + 5.2 transfer experiment (the first build task)**, 5.1, schemas §4, **§5.11 grounding checker**, seams §3B.2–3B.6 scaffolded, logs, leakage tests, repo hygiene set, Responsible AI charter, focus areas, Outline §22 design answers, pitch artifact | **Milestone 1 - end of Wk 2** |
+| 1–2 | Foundation | **§3B.1 provider + 5.2 transfer experiment (the first build task)**, 5.1, schemas §4, **§5.11 grounding checker**, seams §3B.2–3B.6 scaffolded, logs, leakage tests, repo hygiene set, Responsible AI charter, focus areas, Outline §22 design answers, pitch artifact | **Milestone 1 - Fri 9/11, 11:59 p.m. ET** |
 | 3–4 | Baselines + harness | 5.3, 5.8, **5.8A halt control**, 5.9 (simulator), 5.10, 5.14 core; B1/B2 over ~14 folds; **Data Card** | - |
 | 5 | Regime prototype | 5.4 first-cut, wired end-to-end | **Milestone 2 - end of Wk 5** |
 | 6 | Regime intelligence | 5.4 finalized; M1 ablation. *Fallback checkpoint + graded-options gate* | - |
-| 7–8 | Signal intelligence | 5.5 (feature set per the §5.2 verdict, incl. abstention); M2 ablation. *Fallback checkpoint* | - |
+| 7–8 | Signal intelligence | 5.5 (feature set per the §5.2 verdict, incl. abstention); M2 ablation; **§5.11A evidence manifest + widened grounding, with tests**. *Fallback checkpoint, incl. the §5.11A cut decision* | - |
 | 9 | **ALPHA** | 5.9 on the paper account via IEX, basic 5.12, **halt control live**, running unattended from a non-protected folder. **Model Cards + System Card** | **Milestone 3 - end of Wk 9** |
 | 9–10 | Cross-asset tracks | Crypto secondary run (~4 folds); **5.6 options execution layer** | - |
-| 10 | Gates · safety | Query-layer decision logged; **red-team pass on 5.11** | - |
+| 10 | Gates · safety | **§5.11A query layer wired on top of the merged manifest grounding**; **red-team pass on 5.11 and 5.11A**, incl. the injection corpus and the refusal suite | - |
 | 11–12 | Interpretability + robustness + release candidate | 5.11 service wired to the existing filter, 5.13, **5.12A replay mode**, robustness suite, fresh-clone test, container, latency & cost report, user-impact run | **Milestone 4 - end of Wk 12** |
 | 13 | Polish for portfolio | Package repo/demo/report | - |
 | 14 | Ship | Demo video, final report, live presentation (replay-backed) | **Final Presentation - end of Wk 14** |
@@ -391,4 +449,4 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 - **Compute-budget LLM figure** - needs a real cost-per-decision measurement.
 - **Whether the grounding checker needs a prose-claim heuristic** - decide after the first ≥50-sample audit.
 - **Options ATM liquidity characterisation** - needed before the §5.6 selection rule can be finalised.
-- **Final Technical Report due date**, and **M1 due week** - confirm on Canvas.
+- **Final Technical Report due date** - confirm on Canvas. (M1 settled 2026-09-05: Friday 2026-09-11, 11:59 p.m. Eastern.)
