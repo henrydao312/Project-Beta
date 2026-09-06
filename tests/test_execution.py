@@ -195,6 +195,25 @@ def test_a_fill_past_the_end_of_the_data_is_a_no_fill() -> None:
     assert isinstance(result, NoFill) and result.reason_code == "NO_BAR_AT_FILL"
 
 
+def test_a_candidate_pending_past_the_last_bar_is_still_logged() -> None:
+    """A decision the data could not honour is still a decision.
+
+    An approved candidate on the final bar has a fill index one past the end,
+    so the loop ends with it still queued. Dropping it silently breaks the
+    every-decision-is-logged contract and undercounts rejections exactly at
+    fold boundaries, where the count matters most.
+    """
+    day = date(2026, 8, 24)
+    bars = _flat_day(day, 4, 100.0)
+    result = _run(bars, [_candidate(bars, len(bars) - 1, stop=95.0, target=110.0)])
+    assert len(result.decisions) == 1
+    record = result.decisions[0]
+    assert record["decision"] == "rejected"
+    assert "NO_BAR_AT_FILL" in record["decision_reason_codes"]
+    assert record["instrument"]["tradeable"] is False
+    assert result.trades == []
+
+
 def test_the_quote_fill_model_has_no_implementation() -> None:
     """Declared so the vendor limit stays visible, not so it can be selected."""
     config = _config()
