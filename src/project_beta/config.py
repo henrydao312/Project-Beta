@@ -230,11 +230,9 @@ class ModelsConfig:
 class StrategyConfig:
     """Which rule set generates candidates, and at what evidentiary tier.
 
-    `tier` is the structural half of Outline §5.3's promise. One strategy -
-    momentum breakout - carries full evaluation rigor; MA trend and mean
-    reversion exist behind the same interface so the architecture stays
-    extensible after the course, and are backtest-only. Documenting that
-    boundary is not enough: a secondary strategy that finds its way into the
+    `tier` is the structural half of Outline §5.3's promise. It is a claim
+    status, not the user's product path: secondary families can run through the
+    same instrumentation, but a secondary strategy that finds its way into the
     graded ablation would produce a number nobody could defend and nothing
     would have stopped it. The tier travels in the config, into `provenance()`,
     and the harness refuses a graded run for anything but 'primary'.
