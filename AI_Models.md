@@ -14,7 +14,8 @@ Confusing these is the most common misreading of the project.
 |---|---|---|---|
 | **Development assistance** | Coding agents and chat assistants used while writing the code | Neither | No |
 | **M1 and M2** | Market-regime classifier and signal-quality model | **Build** | Yes |
-| **Explanation and query services** | Hosted LLM writing trade rationales, failure narratives and bounded answers over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Yes, as an API call |
+| **Explanation and decision-inspector service** | Hosted LLM writing trade rationales and bounded answers about one recorded decision or non-decision | **Buy** the model; build the decision inspector and rule-state trace | Yes, as an API call |
+| **Cross-artifact query service** | Hosted LLM answering bounded questions over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Optional behind the Week 8 gate |
 
 Development assistance is a tool, not a deliverable. It is permitted course-wide
 and its use is recorded with per-component provenance in the AI usage log, per
@@ -117,10 +118,10 @@ Compute is not a constraint on this project.
 
 | Field | Value |
 |---|---|
-| Task | Text generation and bounded retrieval-backed answers |
+| Task | Text generation for grounded explanations, decision-level inspection, and optional bounded retrieval-backed answers |
 | Technology | Hosted LLM API (Anthropic), model version pinned in RunConfig |
-| Input | DecisionRecord fields plus reason-code documentation for explanations; a hashed evidence manifest for query answers |
-| Output | Plain-English rationale for a logged decision; narrative over precomputed failure-cluster statistics; bounded answers over cited artifacts |
+| Input | DecisionRecord fields plus reason-code documentation for explanations and the decision inspector; a hashed evidence manifest only for optional cross-artifact query answers |
+| Output | Plain-English rationale for a logged decision; bounded answers about one decision or non-decision; optional narrative over precomputed failure-cluster statistics and cited artifacts |
 | Cost | Estimated $10 to $30 per month, billed separately from any consumer subscription |
 
 **Constraints.**

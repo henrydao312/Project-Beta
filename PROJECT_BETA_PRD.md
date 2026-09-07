@@ -486,8 +486,10 @@ that would require the layer to reach outside the manifest.
   version and sampling parameters are stored with each verdict.
 - The manifest hash and the artifact ids appear in the stored answer record, so
   an answer is reproducible from the artifacts it cites.
-- **Week 8 fallback:** if manifest grounding is not merged, this section is cut
-  and §5.12 ships with static explanations. The cut is recorded, not silent.
+- **Week 8 fallback:** if manifest grounding is not merged, this section is cut.
+  The §5.11B decision inspector and per-decision explanations remain; what is
+  lost is cross-artifact reach, not the product's interaction. The cut is
+  recorded, not silent.
 
 ### 5.12 Dashboard
 Current regime, open positions, equity curve, recent decisions with explanations, strategy-toggle panel, **cross-asset panel**, **halt status and kill switch**. **Requirements:** a persistent, non-dismissible "paper trading only - not investment advice" statement; results views display **asset class, feed, session and fold count**; **live vs. replay unambiguously labeled**; **each cross-asset panel states its tier**, so a viewer cannot mistake a 4-fold crypto figure or an options feasibility rate for a core result. **AC:** measured via Outline §10.2; disclaimer string CI-asserted; halt control reachable without leaving the main screen; tier labels CI-asserted.
