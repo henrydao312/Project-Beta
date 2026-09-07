@@ -20,7 +20,7 @@ PROJECT BETA is an **interactive AI strategy workbench for paper trading**, buil
 
 **Graded secondary:** crypto (BTC/USD) - same pipeline, ~4 folds, fold count reported with every figure.
 **Validated execution layer:** single-leg SPY options (§5.6) - no strategy-performance claim.
-**Scoped deliverable (Weeks 6-10):** the **evidence manifest and grounded query layer (§5.11A)**. Promoted from an optional Week 10 gate; it is the product's interaction surface, not a decoration. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any question is answered. **Fallback at end of Week 8:** if that is not done, the query layer is cut and the dashboard ships with static explanations. The guaranteed core above stands without it.
+**Scoped deliverable (Weeks 6-10):** the **evidence manifest and cross-artifact query layer (§5.11A)**. This is the *broader* analysis surface, not the product's only interaction: per-decision interrogation is §5.11B and ships in the core above. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any question is answered. **Fallback at end of Week 8:** if that is not done, the cross-artifact layer is cut. **The decision inspector is unaffected**, so the user can still select any decision or non-decision and ask why; what is lost is asking across many runs at once.
 
 **Planned validation expansion:** a *validated* claim for more than one strategy family is in the scope plan, but not a guaranteed course deliverable. Validation is per strategy and takes a full pre-registered protocol run each (§5.3). The course deliverable implements all three selectable families and funds one full validation run; MA trend and mean reversion are named follow-on validation candidates after the course, queued one family at a time under the same protocol, unless schedule allows one to be pulled forward. Neither can carry a performance claim before that run. This is a budgeted sequence, not an unspecific future wish.
 
@@ -335,7 +335,7 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 
 **New fields to cover (v3.0).** `asset_class` and the `instrument` block are assertable state: an explanation claiming a contract was tradeable when `tradeable: false` must fail the filter.
 
-**Query layer.** Promoted out of this section: see **§5.11A**. It inherits this section's grounding rule and output filter, widened from one record to a hashed evidence manifest.
+**Two surfaces read this section's grounding rule.** **§5.11B**, the decision inspector, is in the guaranteed core and uses this rule unchanged, one record at a time. **§5.11A**, the cross-artifact query layer, is optional and widens it to a hashed manifest.
 
 **Explicitly out of scope: generative what-if.** Counterfactuals have no logged referent. *The permissible form, if ever built, is narration of a **precomputed** parameter sweep from §5.14.*
 
@@ -346,12 +346,74 @@ Append-only store of DecisionRecords and halt records. **Publication constraint:
 - **A false `instrument.tradeable` claim raises.**
 - The drift canary passes, or its failure is investigated before results are published.
 
-### 5.11A Evidence Manifest & Grounded Query Layer (new, v3.1)
+### 5.11B Decision Inspector (guaranteed core, new v3.2)
 
-**Responsibility.** Answer the user's questions about what the system did and
-what the evidence supports, over a fixed set of precomputed artifacts, with
-every claim cited. This is the product's interaction surface (Outline §22.1),
-not an optional chat affordance.
+**Two interaction surfaces, and they are not the same thing.** This one is
+**decision-level** and is in the guaranteed core. §5.11A is **cross-artifact**
+analysis and is optional behind the Week 8 gate. Cutting §5.11A does not remove
+the user's ability to interrogate the system; it removes the ability to ask
+across many runs at once.
+
+**Responsibility.** Let the user select one decision, or one timestamp at which
+no decision happened, and ask a bounded question about it. The questions are
+about *this* decision only:
+
+- why was this trade sized the way it was
+- why was this signal rejected
+- why did the risk engine reduce or block the position
+- **why did no trade occur at this timestamp**
+
+**Evidence, and nothing else.** The answer is assembled from the stored fields
+for that one decision: the `DecisionRecord`, the candidate-trade record, the
+risk state at that bar, the deterministic strategy rule state, and the reason
+codes. **No manifest, no retrieval across runs, no fold results, no clusters, no
+sweeps.** One record in, one answer out, exactly as §5.11 already works.
+
+**This is why it belongs in the core: the guarantee already exists.**
+`project_beta.grounding` checks a text against a single record today, is tested,
+and shipped before the service it polices. The inspector inherits that checker
+unchanged. It needs no manifest and no widened grounding, so **nothing in this
+section depends on the §5.11A prerequisite** and nothing here is at risk from
+the Week 8 gate.
+
+**The non-decision case, which is the part that needs building.** Today a bar
+with no candidate produces no record at all, so there is nothing to answer from.
+The inspector requires a **rule-state trace**: at each evaluated bar the
+strategy records which rule conditions it checked and which one failed first,
+under the same determinism and provenance rules as a `DecisionRecord`. Where
+that trace exists, "no trade at 10:35" is answered with the failed condition and
+its values. **Where it does not exist, the inspector says so plainly** and does
+not infer. A guessed reason for a non-event is a fabricated claim about the
+system's own state, which is precisely what §5.11's grounding rule forbids.
+
+**Boundaries, same as everywhere else.** Read-only. No tools, no market access,
+no write path. It explains one decision and refuses to recommend a trade,
+propose a change to trading logic, or say which strategy family to use.
+
+**AC:**
+- Every answer passes `enforce_grounding` against the **single** record it
+  describes; a test asserts an answer citing a value absent from that record
+  raises.
+- **A non-decision at a selected timestamp returns the failed rule condition**
+  when the trace exists, and an explicit "not recorded" when it does not. A test
+  covers both, and asserts no reason is invented in the second case.
+- The rule-state trace is **deterministic and provenance-carrying**: the same
+  data and config produce the same trace, for every strategy family (§5.3).
+- The inspector answers with **no access to the evidence manifest**, asserted by
+  a test, so the §5.11A cut cannot silently disable it.
+- The four question types above are answerable for every strategy family.
+
+### 5.11A Evidence Manifest & Grounded Query Layer (optional, Week 8 gate)
+
+**Scope: across artifacts, not within one decision.** Per-decision questions are
+§5.11B and are in the guaranteed core. This section is the **broader**
+natural-language analysis: asking across fold results, failure clusters,
+parameter sweeps and another strategy family's evidence, in one question. It is
+the deeper half of the workbench, and it is the half that carries a prerequisite
+and a cut line.
+
+**Responsibility.** Answer questions that span a fixed set of precomputed
+artifacts, with every claim cited.
 
 **The manifest comes first.** A hashed, versioned `EvidenceManifest` naming
 exactly what may be cited: the decision-log slice, the fold table, the
@@ -482,7 +544,7 @@ Runs the ablation ladder under walk-forward validation for the primary strategy,
 | 5 | Regime prototype | 5.4 first-cut, wired end-to-end | **Milestone 2 - end of Wk 5** |
 | 6 | Regime intelligence | 5.4 finalized; M1 ablation. *Fallback checkpoint + graded-options gate* | - |
 | 7–8 | Signal intelligence | 5.5 (feature set per the §5.2 verdict, incl. abstention); M2 ablation; **§5.11A evidence manifest + widened grounding, with tests**. *Fallback checkpoint, incl. the §5.11A cut decision* | - |
-| 9 | **ALPHA** | 5.9 on the paper account via IEX, basic 5.12, **halt control live**, running unattended from a non-protected folder. **Model Cards + System Card** | **Milestone 3 - end of Wk 9** |
+| 9 | **ALPHA** | 5.9 on the paper account via IEX, basic 5.12, **5.11B decision inspector incl. the rule-state trace**, **halt control live**, running unattended from a non-protected folder. **Model Cards + System Card** | **Milestone 3 - end of Wk 9** |
 | 9–10 | Cross-asset tracks | Crypto secondary run (~4 folds); **5.6 options execution layer** | - |
 | 10 | Gates · safety | **§5.11A query layer wired on top of the merged manifest grounding**; **red-team pass on 5.11 and 5.11A**, incl. the injection corpus and the refusal suite | - |
 | 11–12 | Interpretability + robustness + release candidate | 5.11 service wired to the existing filter, 5.13, **5.12A replay mode**, robustness suite, fresh-clone test, container, latency & cost report, user-impact run | **Milestone 4 - end of Wk 12** |
