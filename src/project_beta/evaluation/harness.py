@@ -4,9 +4,10 @@ This module holds the two refusals that keep the evaluation honest, and the
 decision rule that was locked before any M-tier model existed.
 
 **Refusal 1 - tier.** `assert_gradeable` (strategy layer) is called before any
-headline metric is computed. The exploratory strategies carry no walk-forward
-validation, no cost stress and no ablation, so a Sharpe from one would look
-exactly like a result while having nothing behind it (Outline §5.3, PRD §5.14).
+headline metric is computed. Secondary strategies may be selectable product
+paths, but until a family has passed the full pre-registered protocol, a Sharpe
+from one would look exactly like a result while having nothing behind it
+(Outline §5.3, PRD §5.14).
 
 **Refusal 2 - asset class.** Options makes no walk-forward performance claim.
 It has zero complete folds at 30/6/6, because 31 months of history cannot

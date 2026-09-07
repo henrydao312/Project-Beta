@@ -87,7 +87,7 @@ class MarketDataProvider(Protocol):
 
 ### 3B.3 Results schema with provenance
 
-Every results row carries `asset_class`, `vendor`, `feed`, `data_start`, `fold_scheme`, `n_folds`, `config_hash`. **This puts the comparability caveat in the data rather than in prose.** **AC:** schema test rejects a results row missing `asset_class` or `n_folds` (§5.14).
+Every results row carries `asset_class`, `vendor`, `feed`, `data_start`, `fold_scheme`, `n_folds`, `strategy`, `strategy_version`, `strategy_tier`, `config_hash`. **This puts the comparability caveat in the data rather than in prose.** **AC:** schema coverage rejects a results row missing `asset_class`, `n_folds`, `strategy` or `strategy_version` (§5.14).
 
 ### 3B.4 Point-in-time universe
 
@@ -261,11 +261,11 @@ own interval.
   family.
 - The harness **refuses a graded ablation** for any `tier: secondary` strategy,
   and `build_strategy` refuses a config that promotes one.
-- Every family produces decision records, explanations and workbench evidence
-  that pass the same checks as the primary; a test runs the full pipeline on a
-  secondary family and asserts the records are complete.
-- **No results table places two strategy families in one comparison**; a schema
-  test rejects a row missing `strategy` or `strategy_version`.
+- Every family must produce decision records, explanations and workbench
+  evidence that pass the same checks as the primary; the required test runs the
+  full pipeline on a secondary family and asserts the records are complete.
+- **No results table places two strategy families in one comparison**; the
+  required schema check rejects a row missing `strategy` or `strategy_version`.
 
 ### 5.4 Regime Classifier
 Per-bar regime probabilities; 3 trend states + binary volatility flag. The built model is hand-written logistic regression; RF/XGBoost remain behind the classifier seam only if later evidence shows model capacity is the constraint. **AC:** walk-forward only across ~14 folds (equity) or ~4 (crypto); calibration curve + Brier per fold; M1-vs-B2 ablation; **per-regime and per-volatility-state breakdown**; Model Card records the feed **and asset class**; **no options-trained variant exists** (§5.6).
@@ -443,7 +443,7 @@ Statistical clustering of losing trades, then LLM interpretation and targeted-te
 ### 5.14 Evaluation Harness
 Runs the ablation ladder under walk-forward validation for the primary strategy, **on equities only** (Outline §7A). Crypto runs the same harness with its own fold scheme; options runs the feasibility study, not the ladder.
 
-**AC:** one command produces the full results table; **every results row records `asset_class`, `feed`, `session`, `fold_scheme` and `n_folds` (§3B.3), and a schema test rejects a row missing any of them**; **the harness refuses to place SIP- and IEX-derived runs, or runs from different asset classes, in the same comparison table**; **it refuses to compute a Sharpe or drawdown for `asset_class: option`.**
+**AC:** one command produces the full results table; **every results row records `asset_class`, `feed`, `session`, `fold_scheme`, `n_folds`, `strategy`, `strategy_version` and `strategy_tier` (§3B.3), and required schema coverage rejects a row missing any of them**; **the harness refuses to place SIP- and IEX-derived runs, runs from different asset classes, or different strategy families in the same comparison table**; **it refuses to compute a Sharpe or drawdown for `asset_class: option`.**
 
 ### 5.15 Packaging, Cards & Release Engineering
 **Model Cards** (Wk 9) - feed provenance, asset class, fold count, the §5.2 transfer result, calibration, limitations. **System Card** (Wk 9) - the composed pipeline, where AI sits and where it deliberately does not, the guardrails, the asset-class tier structure and why each tier claims what it claims. **Container** (Wk 12). **Latency & cost report** (Wk 12). **AC:** `docker build` succeeds from a clean checkout; cards linked from the README; CI green with no test disabled.

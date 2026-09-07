@@ -48,7 +48,7 @@ models:
 strategy:
   name: momentum_breakout
   version: mom_v1
-  tier: primary # primary | secondary (secondary is backtest-only, exploratory)
+  tier: primary # primary | secondary (secondary runs, but carries no performance claim)
   params:
     min_adx: 20.0
     min_range_expansion: 1.2

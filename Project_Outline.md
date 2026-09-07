@@ -154,7 +154,7 @@ Dropped features stay in the registry with `status="dropped"` rather than being 
 
 **No best-of-three.** Every results row carries its strategy name and version. Ranking families to pick a winner is not a supported claim: three families each hunting a positive result is three chances at one finding, which is exactly the multiple-comparisons failure the pre-registration exists to prevent. Each family's claim stands alone.
 
-**AC:** same data + config ⇒ byte-identical candidate list, for every family; the harness refuses a graded ablation for a `secondary` strategy and `build_strategy` refuses to promote one by configuration; a secondary family run end to end produces complete decision records, explanations and workbench evidence; no results table places two families in one comparison, and a schema test rejects a row missing `strategy` or `strategy_version`.
+**AC:** same data + config ⇒ byte-identical candidate list, for every family; the harness refuses a graded ablation for a `secondary` strategy and `build_strategy` refuses to promote one by configuration; a required secondary-family end-to-end test produces complete decision records, explanations and workbench evidence; no results table places two families in one comparison, and required schema coverage rejects a row missing `strategy` or `strategy_version`.
 
 ### 5.4 LLM Trade-Explanation Agent (required)
 

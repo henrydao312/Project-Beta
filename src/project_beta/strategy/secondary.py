@@ -5,11 +5,12 @@ Strategy Engine a real interface rather than a single function with a
 docstring. A second and third implementation is what proves the seam holds, and
 it is what makes continued work after the course a matter of adding a class.
 
-They are `tier = "secondary"`, which is not a label. `assert_gradeable` refuses
-them, `build_strategy` refuses to promote them, and the walk-forward harness
-will not compute a headline metric for one. They get no cost stress, no
-ablation, and no walk-forward claim, so any Sharpe figure from one would look
-exactly like a result while having nothing behind it.
+They are `tier = "secondary"`, which is not a product tier. Under Decision 23
+they can run through the same instrumentation as the primary family, but
+`assert_gradeable` refuses them, `build_strategy` refuses to promote them, and
+the walk-forward harness will not compute a headline metric for one. They carry
+no performance claim until the full pre-registered protocol is run for that
+family.
 
 They read the same registry as the primary, so they inherit the volume drop
 without needing to know about it.
