@@ -12,17 +12,19 @@
 
 ## 1. Product Vision
 
-PROJECT BETA is an **interactive AI strategy workbench for paper trading**, built as a two-person AI Capstone project on the **AI Engineering track**. AI augments - never replaces - a transparent rule-based strategy, through market-regime classification, signal-quality filtering and grounded explanation, and it gives the user a **read-only, evidence-bounded way to interrogate what the system did and what the evidence supports (§5.11A)**. The system is an instrument, not an advisor: it never recommends a trade and never proposes a change to trading logic. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible - **and every reported result states which asset class it came from and how many folds stand behind it.**
+PROJECT BETA is an **interactive AI strategy workbench for paper trading**, built as a two-person AI Capstone project on the **AI Engineering track**. **The user picks a strategy family at setup** - momentum breakout, moving-average trend or mean reversion - and it runs the whole pipeline (§5.3). AI augments - never replaces - the transparent rule set the user chose, through market-regime classification, signal-quality filtering and grounded explanation, and it gives the user a **read-only, evidence-bounded way to interrogate what the system did and what the evidence supports (§5.11A)**. The system is an instrument, not an advisor: it never recommends a trade and never proposes a change to trading logic. The graded core is SPY equities; the same pipeline extends to BTC/USD as a validated secondary track and to single-leg SPY options as an execution layer. Every trade decision is logged, auditable, explainable, and reproducible - **and every reported result states which asset class it came from and how many folds stand behind it.**
 
 ## 2. Goals and Non-Goals
 
-**Required (guaranteed core = the MVP):** end-to-end workflow; one primary rule-based strategy with full evaluation rigor; regime classifier; signal-quality model; deterministic risk engine **with halt control (§5.8A)**; execution simulator + Alpaca paper trading; decision logging; LLM explanation service **with grounding enforcement (§5.11)**; failure-analysis assistant; dashboard **with replay mode (§5.12A)**; evaluation harness; model cards, system card, container, latency & cost report (§5.15). **Plus the six architecture seams (§3B).**
+**Required (guaranteed core = the MVP):** end-to-end workflow; **three selectable rule-based strategy families, each running the full pipeline (§5.3)**, with the pre-registered evaluation rigor carried out on the primary one within the course; regime classifier; signal-quality model; deterministic risk engine **with halt control (§5.8A)**; execution simulator + Alpaca paper trading; decision logging; LLM explanation service **with grounding enforcement (§5.11)**; failure-analysis assistant; dashboard **with replay mode (§5.12A)**; evaluation harness; model cards, system card, container, latency & cost report (§5.15). **Plus the six architecture seams (§3B).**
 
 **Graded secondary:** crypto (BTC/USD) - same pipeline, ~4 folds, fold count reported with every figure.
 **Validated execution layer:** single-leg SPY options (§5.6) - no strategy-performance claim.
 **Scoped deliverable (Weeks 6-10):** the **evidence manifest and grounded query layer (§5.11A)**. Promoted from an optional Week 10 gate; it is the product's interaction surface, not a decoration. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any question is answered. **Fallback at end of Week 8:** if that is not done, the query layer is cut and the dashboard ships with static explanations. The guaranteed core above stands without it.
 
-**Non-goals (permanent):** live-money trading; reinforcement learning; autonomous LLM trading decisions; HFT/tick data; multiple fully-evaluated graded strategies; SEC-filing RAG; AI-controlled risk rules; **news/sentiment gate (dropped 2026-08-31)**; **generative what-if scenarios (§5.11 - excluded on grounding grounds, not scope)**.
+**Not within the course, but on the product path:** a *validated* claim for more than one strategy family. Validation is per strategy and takes a full pre-registered protocol run each (§5.3); the semester funds one. This is a budget, not a ceiling.
+
+**Non-goals (permanent):** live-money trading; reinforcement learning; autonomous LLM trading decisions; HFT/tick data;  SEC-filing RAG; AI-controlled risk rules; **news/sentiment gate (dropped 2026-08-31)**; **generative what-if scenarios (§5.11 - excluded on grounding grounds, not scope)**.
 
 **Account type:** **Alpaca Trading API, Basic (free) tier.** Not Broker API - that serves end users other than the account holder, breaching the personal, non-commercial data licences and moving the project into the LLM provider's consumer-facing high-risk category.
 
@@ -213,7 +215,57 @@ An `asset_class: option` RunConfig with a `walk_forward` block **must be rejecte
 - **AC:** leakage test passes (shift-forward invariance); feature reference table complete with derivation tags; **no volume feature in absolute units (test over the feature registry)**; the transfer result is logged before the signal-quality model is trained.
 
 ### 5.3 Strategy Engine
-`generate_candidates(features, bars) -> list[CandidateTrade]`. Primary: momentum breakout, full rigor. Secondary: MA trend, mean reversion - backtest-only, labeled exploratory. **AC:** same data + config ⇒ byte-identical candidate list; the harness refuses a graded ablation for any `tier: secondary` strategy.
+
+`generate_candidates(features, bars) -> list[CandidateTrade]`.
+
+**Three selectable families, chosen at setup.** `strategy.name` in `RunConfig`
+selects **momentum breakout**, **moving-average trend** or **mean reversion**.
+All three are transparent rule sets: no model, no fit, no learned parameter,
+and everything downstream can only remove or shrink the candidates they produce.
+
+**All three run the whole pipeline.** Whichever family is selected goes through
+backtest, the AI filters (§5.4, §5.5), the deterministic risk engine (§5.8) and
+halt control, the decision log (§5.10), grounded explanations (§5.11), failure
+analysis (§5.13) and the evidence workbench (§5.11A). **This is the v3.1 change:
+the secondary families were previously backtest-only.** They are selectable
+paths, not decorative toggles, and a user who picks mean reversion gets the same
+instrumentation as one who picks momentum.
+
+**What is gated is the claim, not the path.** `strategy.tier` is the claim
+status, and it is per strategy:
+
+| Status | Meaning |
+|---|---|
+| `primary` | Has been through the full pre-registered protocol: walk-forward at the locked fold scheme, cost stress, leakage checks, ablation, failure analysis. Only such a strategy may carry a performance claim |
+| `secondary` | Runs everything and reports its own behaviour, and **may not carry a performance claim**. No headline metric, no ablation figure, no Sharpe |
+
+A strategy moves from `secondary` to `primary` **only** by passing the same
+protocol, in full, pre-registered before the run. There is no other door, and
+`build_strategy` refuses to promote one by configuration.
+
+**Honest status today:** momentum breakout is the only family that has been
+through the protocol, and its first graded run returned `no_claim`. **No
+strategy family is currently validated**, and the documents say so rather than
+letting `primary` be read as "works".
+
+**Claims are strategy-scoped, and there is no best-of-three.** Every results row
+records its strategy name and version alongside asset class, feed and fold count
+(§5.14). Comparing strategies to pick a winner is **not a supported claim**:
+three families each hunting a positive result is three chances at one finding,
+which is the multiple-comparisons failure the pre-registration exists to prevent.
+Each family's claim stands alone, pre-registered separately, reported with its
+own interval.
+
+**AC:**
+- Same data and config produce a **byte-identical candidate list** for every
+  family.
+- The harness **refuses a graded ablation** for any `tier: secondary` strategy,
+  and `build_strategy` refuses a config that promotes one.
+- Every family produces decision records, explanations and workbench evidence
+  that pass the same checks as the primary; a test runs the full pipeline on a
+  secondary family and asserts the records are complete.
+- **No results table places two strategy families in one comparison**; a schema
+  test rejects a row missing `strategy` or `strategy_version`.
 
 ### 5.4 Regime Classifier
 Per-bar regime probabilities; 3 trend states + binary volatility flag. The built model is hand-written logistic regression; RF/XGBoost remain behind the classifier seam only if later evidence shows model capacity is the constraint. **AC:** walk-forward only across ~14 folds (equity) or ~4 (crypto); calibration curve + Brier per fold; M1-vs-B2 ablation; **per-regime and per-volatility-state breakdown**; Model Card records the feed **and asset class**; **no options-trained variant exists** (§5.6).
@@ -343,6 +395,8 @@ text it did not author reaches a prompt. Until now, prompt injection is
 impossible by construction because every prompt is assembled from record fields;
 that property ends here. User text is carried in a delimited slot the system
 prompt declares to be data, never instruction (§20.2 Harm 4).
+
+**Strategy questions are in scope; strategy advice is not.** The workbench can report what the selected strategy did and what evidence exists for it, including its claim status, and it can show another family's evidence beside it. **It refuses to rank strategies or answer which one to use**, for the same reason it refuses to recommend a trade: a ranking is advice, and the multiple-comparisons rule above means the comparison would not be supportable even if advice were allowed.
 
 **In scope, the question taxonomy:** why a decision came out as it did; where
 the strategy loses money, over the cluster statistics; which rung of the ladder
