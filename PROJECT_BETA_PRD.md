@@ -107,12 +107,19 @@ A decision record should capture:
 - `m1_regime_probabilities`
 - `m2_score`
 - `m2_threshold`
+- `m2_threshold_fold`
+- `m2_threshold_window`
 - `risk_state`
 - `decision_outcome`
 - `reason_codes`
 - `position_size`
 - `fill_result`
 - `evidence_refs`
+
+Any record carrying a fitted threshold also carries the fold and validation
+window that selected it (`DECISIONS.md` #28). The signal-quality threshold is
+chosen per validation window, so it varies across folds. An answer citing a
+threshold without naming its window is ungrounded.
 
 ### RuleStateTrace
 
@@ -218,6 +225,62 @@ The inspector evaluation set has about 200 cases:
 Build and measure an initial 60-case subset first: 30 tier 1, 15 tier 2, 15
 tier 3.
 
+### Case generation
+
+Cases are generated compositionally rather than hand-authored, following the
+tau2-bench pattern. A case is three ordered lists:
+
+- **initialization functions** that select or construct the record state,
+- **solution functions**, restricted to reads a real tool could perform, that
+  produce the answer,
+- **assertion functions** that must hold: required values, the reason code, the
+  cited record id, and prohibited claims.
+
+Groups are mutually exclusive by gate outcome (regime gate, signal-quality gate,
+risk gate, and the single-valued final decision), and a case combines at most one
+outcome per gate. Correctness is verified mechanically: apply the initializations,
+apply the solutions, confirm every assertion holds, and separately confirm the
+case was not already satisfied beforehand.
+
+Tier 3 is the case where the solution list is empty. That is a property of the
+record schema and the permitted tool set rather than a judgment, which is what
+makes the refusal metric defensible. **Unanswerability is relative to the
+declared record and tool boundary, not absolute.**
+
+Hand-authoring is the exception, not the rule: it is for cases the generator
+cannot express, and each one is recorded as such.
+
+### Harness
+
+The harness takes a pluggable answerer (`DECISIONS.md` #26). `E0`, `E1`, `E2`,
+`Oracle` and `Full` run through the same interface and the same code path, and
+`E3` plugs in unchanged.
+
+Retrieval is separable from generation (`DECISIONS.md` #27), so the harness can
+run three modes against the same case:
+
+| Mode | Evidence supplied | Isolates |
+|---|---|---|
+| Oracle-record | Exactly the records the case needs | Grounded generation, retrieval removed |
+| Default | The system retrieves | The whole pipeline |
+| No-record | Withheld; the answer is not recoverable | Refusal calibration |
+
+### Grading order
+
+Mechanical checks first. An LLM or rubric judge scores only residual prose
+quality and is **never the source of truth** (`DECISIONS.md` #22).
+
+| Check | Used for |
+|---|---|
+| `exact_match` | Scalars: reason codes, record ids, scores, thresholds, dates |
+| `must_include` | Multi-part answers: reason plus value plus threshold plus record id |
+| `must_not_include` | Prohibited claims, advice, fabricated ids, values absent from the cited record |
+| Deterministic aggregation | Tier 2 counts, rates and grouped summaries |
+| Judge | Readability and completeness, after the above |
+
+Report the share of the suite graded mechanically against the share judged, and
+the judge's agreement with human labels on a sample.
+
 Metrics:
 
 - evidence faithfulness,
@@ -248,6 +311,11 @@ names.
 | E2 | Project Beta with the policy document removed |
 | E3 | Open-weight model in the same harness |
 | Oracle | Deterministic upper bound reading directly from records |
+
+`E0`, `E1`, `E2` and `Oracle` are **core measured systems**. `E3` is **planned if
+schedule allows** and is cuttable before core inspector delivery is threatened
+(`Project_Outline.md` §14, cut ladder item 5). Cutting `E3` requires no harness
+change, because every system runs through the same answerer interface.
 
 Trading names remain:
 
