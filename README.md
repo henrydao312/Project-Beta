@@ -1,6 +1,6 @@
 # PROJECT BETA
 
-**An AI-assisted paper-trading system that filters a transparent, rule-based strategy - and gives a checkable reason for every trade it takes or refuses.**
+**An AI agent that answers questions about a simulated trading account, proves every answer from the system's own records, and refuses clearly when the records cannot support one.**
 
 > ⚠️ **Paper trading only. Not investment advice.** No real money is at risk at any point. There is no live-money code path in this repository, and a test enforces its absence.
 
@@ -10,7 +10,9 @@ AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Two-person team: Henry Dao
 
 ## What it does
 
-A fixed, readable momentum-breakout rule proposes candidate trades on 5-minute SPY bars. Two machine-learning models then judge the *context* - what market regime we're in, and how likely this particular signal is to work out - and a deterministic risk engine enforces hard limits. Every decision is written to an append-only log, and a language model turns each logged record into a plain-English explanation that can be checked field by field against what the system actually stored.
+Underneath the agent, a fixed, readable momentum-breakout rule proposes candidate trades on 5-minute SPY bars. Two machine-learning models judge the *context* - what market regime we're in, and how likely this particular signal is to work out - and a deterministic risk engine enforces hard limits. Every decision, and every decision declined, is written to an append-only log.
+
+That pipeline is the substrate, not the product. **The product is the agent on top of it**: ask why a trade was sized the way it was, which rule condition failed at 10:32, whether a rejection came from the filter or the risk engine, or what an account holds. Every numeral and state label in an answer must trace to a field in a cited record before the answer is released, and questions the records cannot settle get a clean refusal rather than a plausible guess. **Whether the strategy makes money is not a success criterion.** Equities only.
 
 **The AI never decides a trade.** It classifies and scores; a documented rule combines those into approve / reduce / delay / reject; the risk engine can override all of it. That constraint is the point of the project, not a limitation of it.
 

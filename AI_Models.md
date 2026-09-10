@@ -15,7 +15,7 @@ Confusing these is the most common misreading of the project.
 | **Development assistance** | Coding agents and chat assistants used while writing the code | Neither | No |
 | **M1 and M2** | Market-regime classifier and signal-quality model | **Build** | Yes |
 | **Explanation and decision-inspector service** | Hosted LLM writing trade rationales and bounded answers about one recorded decision or non-decision | **Buy** the model; build the decision inspector and rule-state trace | Yes, as an API call |
-| **Cross-artifact query service** | Hosted LLM answering bounded questions over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Optional behind the Week 8 gate |
+| **Cross-artifact query service** | Hosted LLM answering bounded questions over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Core. The Week 8 gate was removed on 2026-09-08 (`DECISIONS.md` #25) |
 
 Development assistance is a tool, not a deliverable. It is permitted course-wide
 and its use is recorded with per-component provenance in the AI usage log, per
@@ -67,8 +67,9 @@ ablation.
 | Training data | Candidate-trade outcomes from the SIP backtest |
 | Library | Project-local implementation in `models/linear.py`; no scikit-learn/XGBoost dependency |
 
-**Scope note.** M2 scores the underlying. Contract selection for the options
-layer is deterministic and downstream, so the options track adds no model.
+**Scope note.** M2 scores the underlying. The options layer is **cut from the capstone**
+(`DECISIONS.md` #25); when it existed, contract selection was deterministic and downstream,
+so it added no model either way.
 
 **Constraint: M2's sample size is trade count, not bar count.** The dataset has
 one row per candidate trade, not per bar. If B2 generates 500 candidates over
@@ -170,11 +171,14 @@ Two layers. Only one decides.
 **ML metrics, supporting.** Per-class precision, recall and F1; ROC-AUC; PR
 curves; per-regime confusion matrices; calibration curves; Brier score.
 
-**Trading metrics, primary.** The ablation ladder B1 to B2 to M1 to M2 under
-walk-forward validation, with ΔSharpe evaluated per `EVALUATION_PROTOCOL.md`.
+**Trading metrics, supporting.** The ablation ladder B1 to B2 to M1 to M2 under
+walk-forward validation is reported as appendix evidence under
+`EVALUATION_PROTOCOL.md`. After the 2026-09-08 pivot, it no longer defines the
+project's primary success criterion.
 
-A model with strong ML metrics that does not improve the ablation is a failed
-component. ML metrics diagnose; the ablation decides.
+A model with strong ML metrics but weak trading results can still be useful if
+it produces truthful, inspectable decision records. ML metrics diagnose model
+behavior; the inspector evaluation decides the project.
 
 ---
 
@@ -185,5 +189,5 @@ fold count, the feed-transfer result, feature list, walk-forward results,
 calibration, and limitations.
 
 **System Card** (Week 9): the composed pipeline, where AI sits and where it
-deliberately does not, the §20.2 guardrails, the asset-class tier structure,
-known failure modes, and the paper-trading statement.
+deliberately does not, the guardrails, known failure modes, the inspector
+evaluation results, and the paper-trading statement.
