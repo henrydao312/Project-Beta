@@ -1,6 +1,13 @@
 # Evaluation Protocol
 
-**Status: LOCKED 2026-09-02, before any M-tier model was trained.**
+**Status: LOCKED 2026-09-02, before any M-tier model was trained. Unchanged.**
+
+> **Scope note, 2026-09-08.** This protocol governs the **trading comparison only**. After
+> the pivot (`DECISIONS.md` #25) that comparison is no longer the project's primary result;
+> it is reported as appendix evidence, and its `no_claim` outcome is the measured reason the
+> agent declines to rank strategies. **Nothing in this document is amended, because amending
+> a pre-registration after seeing its result is exactly what it exists to prevent.** The
+> inspector's evaluation protocol is a separate document.
 
 This document fixes how the primary comparison is decided, so the decision rule
 cannot be selected after the results are known. Outline §17 criterion 4 requires
