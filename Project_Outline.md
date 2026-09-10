@@ -218,6 +218,28 @@ The evaluation suite has about 200 questions:
 
 Build the first 60-case subset as 30 / 15 / 15 before expanding.
 
+Questions are **generated compositionally, not hand-authored**, following the
+tau2-bench pattern: initialization functions set the record state, solution
+functions produce the answer using only reads a real tool could perform, and
+assertion functions state what must hold. Correctness is verified mechanically
+against record fields, deterministic aggregates, required citations and
+prohibited claims, so the set is checkable rather than reviewed. Tier 3 falls out
+as the case with no solution path, which makes unanswerability a property of the
+declared record and tool boundary rather than our judgment. Hand-authoring is
+reserved for cases the generator cannot express. `PROJECT_BETA_PRD.md` §9 carries
+the mechanics.
+
+**Grading is mechanical first.** Deterministic checks decide correctness; an LLM
+or rubric judge scores residual prose quality only and is never the source of
+truth. We report how much of the suite was graded mechanically against how much
+was judged.
+
+**The harness takes a pluggable answerer and keeps retrieval separable from
+generation** (`DECISIONS.md` #26 and #27), so every system runs the same code
+path and the Oracle-record, Default and No-record ablations run without a
+refactor. Those three separate retrieval failure from grounding failure from
+refusal miscalibration.
+
 Metrics:
 
 - evidence faithfulness,
@@ -251,6 +273,10 @@ systems `B1` and `B2`.
 | E2 | No-policy ablation | Does explicit policy grounding improve refusal and compliance? |
 | E3 | Open-weight model | Are results architecture-dependent or provider-dependent? |
 | Oracle | Deterministic upper bound | Reads directly from records; not a competitor |
+
+`E0`, `E1`, `E2` and `Oracle` are core and are measured. `E3` is planned if
+schedule allows and is cuttable before core inspector delivery is threatened; it
+sits at item 5 of the cut ladder in §14, and cutting it costs no harness change.
 
 Trading-system names remain unchanged:
 
