@@ -20,7 +20,7 @@ PROJECT BETA is an **interactive AI strategy workbench for paper trading**, buil
 
 **Graded secondary:** crypto (BTC/USD) - same pipeline, ~4 folds, fold count reported with every figure.
 **Validated execution layer:** single-leg SPY options (§5.6) - no strategy-performance claim.
-**Scoped deliverable (Weeks 6-10):** the **evidence manifest and cross-artifact query layer (§5.11A)**. This is the *broader* analysis surface, not the product's only interaction: per-decision interrogation is §5.11B and ships in the core above. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any question is answered. **Fallback at end of Week 8:** if that is not done, the cross-artifact layer is cut. **The decision inspector is unaffected**, so the user can still select any decision or non-decision and ask why; what is lost is asking across many runs at once.
+**Protected workbench deliverable (Weeks 6-10):** the **evidence manifest and cross-artifact query layer (§5.11A)**. This is the *broader* analysis surface, not the product's only interaction: per-decision interrogation is §5.11B and ships in the core above. Because evidence interrogation is the product's main differentiator, schedule pressure cuts extra markets before it cuts this layer. **Gated on its own prerequisite:** grounding must be generalised from one record to the manifest before any cross-artifact question is answered. **Fallback at end of Week 8:** if full taxonomy support is too large, narrow §5.11A to a minimal fixed-question surface over precomputed artifacts; only if manifest grounding itself is not merged is the cross-artifact layer cut. **The decision inspector is unaffected** either way, so the user can still select any decision or non-decision and ask why.
 
 **Planned validation expansion:** a *validated* claim for more than one strategy family is in the scope plan, but not a guaranteed course deliverable. Validation is per strategy and takes a full pre-registered protocol run each (§5.3). The course deliverable implements all three selectable families and funds one full validation run; MA trend and mean reversion are named follow-on validation candidates after the course, queued one family at a time under the same protocol, unless schedule allows one to be pulled forward. Neither can carry a performance claim before that run. This is a budgeted sequence, not an unspecific future wish.
 
@@ -486,10 +486,12 @@ that would require the layer to reach outside the manifest.
   version and sampling parameters are stored with each verdict.
 - The manifest hash and the artifact ids appear in the stored answer record, so
   an answer is reproducible from the artifacts it cites.
-- **Week 8 fallback:** if manifest grounding is not merged, this section is cut.
-  The §5.11B decision inspector and per-decision explanations remain; what is
-  lost is cross-artifact reach, not the product's interaction. The cut is
-  recorded, not silent.
+- **Week 8 fallback:** because cross-artifact evidence interrogation is part of
+  the USP, extra markets are cut before this section. If full taxonomy support is
+  too large, §5.11A narrows to a minimal fixed-question surface over precomputed
+  artifacts. Only if manifest grounding itself is not merged is this section cut.
+  The §5.11B decision inspector and per-decision explanations remain either way;
+  the cut is recorded, not silent.
 
 ### 5.12 Dashboard
 Current regime, open positions, equity curve, recent decisions with explanations, strategy-toggle panel, **cross-asset panel**, **halt status and kill switch**. **Requirements:** a persistent, non-dismissible "paper trading only - not investment advice" statement; results views display **asset class, feed, session and fold count**; **live vs. replay unambiguously labeled**; **each cross-asset panel states its tier**, so a viewer cannot mistake a 4-fold crypto figure or an options feasibility rate for a core result. **AC:** measured via Outline §10.2; disclaimer string CI-asserted; halt control reachable without leaving the main screen; tier labels CI-asserted.
