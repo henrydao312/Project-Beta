@@ -321,8 +321,9 @@ checking whether required confirmation happened before the write.
 
 ## 13. Work Breakdown And Ownership
 
-The exact split has **not** been agreed with Jacky yet. The table below is a
-proposed working split for discussion, not a commitment.
+Two-person team: Henry Dao and Jacky Au-Yeung. The exact split has **not** been
+agreed with Jacky yet. The table below is a proposed working split for
+discussion, not a commitment.
 
 | Stream | Contents | Proposed owner |
 |---|---|---|
