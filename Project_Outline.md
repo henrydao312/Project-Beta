@@ -321,25 +321,25 @@ checking whether required confirmation happened before the write.
 
 ## 13. Work Breakdown And Ownership
 
-Two-person team: Henry Dao and Jacky Au-Yeung. The exact split has **not** been
-agreed with Jacky yet. The table below is a proposed working split for
-discussion, not a commitment.
+Two-person team: Henry Dao and Jacky Au-Yeung. The split below was agreed on
+2026-09-11.
 
-| Stream | Contents | Proposed owner |
+| Stream | Contents | Owner |
 |---|---|---|
 | Explanation and agent layer | Inspector, refusal path, grounding, MCP/agent integration | Henry |
 | Evidence layer | Decision records, rule-state traces, shadow outcomes, provenance | Jacky |
-| Tier 2 retrieval and aggregation | Aggregate scripts, answer keys, evidence manifest inputs | Jacky |
+| Tier 2 aggregation and answer keys | Aggregate scripts and answer-key computation | Jacky |
 | Simulated account layer | Accounts, balances, positions, order history, confirmation records | Jacky |
-| Evaluation set | 200 questions, tier labels, answer keys, false-refusal checks | Shared |
+| Evaluation set | 200 questions, tier labels, Tier 2 question drafting, evidence manifest inputs, false-refusal checks | Shared |
 | Red team and audit | Cross-account probes, advice elicitation, confirmation-bypass tests, human audit | Shared |
 | Cost and latency | Model-call cost, retrieval latency, tool latency, harness runtime | Shared |
 | Docs and demo | README, cards, architecture diagram, demo video, final report | Shared |
 
-Discussion point for Jacky: the clean split may be that Jacky takes the evidence
-and account-data layer while Henry takes the inspector and agent layer. If Jacky
-prefers a different area or has less capacity, the project should adjust before
-work is assigned.
+Jacky owns the Tier 2 aggregate scripts and answer-key computation alone. Henry
+builds the answering path, so a key computed by the same person could carry one
+mistake into both the answer and the key meant to check it. Tier 2 is the only
+tier where this bites: tier 1 keys are single-record lookups, and tier 3 falls
+out of the generator as the no-solution case.
 
 ## 14. Cut Ladder
 
