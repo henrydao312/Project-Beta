@@ -1,12 +1,12 @@
 # AI Models in PROJECT BETA
 
 What each model is, whether it is built or bought, what it may and may not do,
-and the constraints that apply to it. Referenced by Outline §5, §22.6 and
-§20.1, and by the Model Cards due in Week 9.
+and the constraints that apply to it. Read alongside `Project_Outline.md` §6
+and §9 and the data contracts in `PROJECT_BETA_PRD.md` §5.
 
 ---
 
-## 1. Three distinct roles for AI
+## 1. Roles for AI
 
 Confusing these is the most common misreading of the project.
 
@@ -18,15 +18,12 @@ Confusing these is the most common misreading of the project.
 | **Cross-artifact query service** | Hosted LLM answering bounded questions over the evidence manifest | **Buy** the model; build the manifest, retrieval boundary and verifier | Core. The Week 8 gate was removed on 2026-09-08 (`DECISIONS.md` #25) |
 
 Development assistance is a tool, not a deliverable. It is permitted course-wide
-and its use is recorded with per-component provenance in the AI usage log, per
-Outline §16. It is not part of the shipped system and is not evaluated.
+and its use is recorded with per-component provenance in the AI usage log. It is
+not part of the shipped system and is not evaluated.
 
-No model in this project is pretrained or fine-tuned. Outline §22.5 walks the
-course's architecture decision tree and gives two answers for the LLM services:
-the explanation/failure-narrative services are Tier 1, Prompt-Centric, while
-the query layer is retrieval over a closed, hashed, system-authored corpus. The
-two classical models are not on that spectrum, which orders LLM application
-patterns.
+We train M1 and M2 locally. We use hosted language models without pretraining
+or fine-tuning them. The inspector answers from a bounded record corpus and
+permitted tool results; we build retrieval, grounding and evaluation around it.
 
 ---
 
@@ -73,9 +70,11 @@ so it added no model either way.
 
 **Constraint: M2's sample size is trade count, not bar count.** The dataset has
 one row per candidate trade, not per bar. If B2 generates 500 candidates over
-ten years, M2 trains on roughly 250 rows per fold. Candidate count must be
-measured the first time B2 runs (Week 4) and treated as a gate: if it is too
-low, strategy parameters are widened before M2 is built.
+ten years, the usable training count will be smaller within each fold. Report
+the actual candidate counts per fold. Test results have already been
+seen, so subsequent parameter changes require the disclosure described in
+`DECISIONS.md` #18. Low sample counts are a limitation, not a reason to tune
+against the observed test result.
 
 ### 2.3 Compute and cost
 
@@ -104,7 +103,7 @@ Compute is not a constraint on this project.
 4. **No volume-derived features.** The feed-transfer experiment (2026-09-02)
    failed its pre-committed threshold, so volume-derived features are dropped
    from both models and from B2's strategy rules.
-5. **Point-in-time features only**, per Outline §11.
+5. **Point-in-time features only**, per `DECISIONS.md` #6, #7 and #19.
 6. **Artifacts are versioned and hashed**, so rolling back to a known-good model
    version is a configuration change rather than a rebuild.
 7. **AI never enters the trade decision path.** M1 and M2 produce inputs to a
@@ -119,20 +118,21 @@ Compute is not a constraint on this project.
 
 | Field | Value |
 |---|---|
-| Task | Text generation for grounded explanations, decision-level inspection, and optional bounded retrieval-backed answers |
+| Task | Text generation for grounded explanations, decision-level inspection, and bounded retrieval-backed answers |
 | Technology | Hosted LLM API (Anthropic), model version pinned in RunConfig |
-| Input | DecisionRecord fields plus reason-code documentation for explanations and the decision inspector; a hashed evidence manifest only for optional cross-artifact query answers |
+| Input | DecisionRecord fields plus reason-code documentation for explanations and the decision inspector; permitted account/tool results and a hashed evidence manifest for cross-record answers |
 | Output | Plain-English rationale for a logged decision; bounded answers about one decision or non-decision; optional narrative over precomputed failure-cluster statistics and cited artifacts |
 | Cost | Estimated $10 to $30 per month, billed separately from any consumer subscription |
 
 **Constraints.**
 
 1. **Hard grounding rule.** The prompt contains only fields present in the
-   decision record, plus reason-code documentation. No market data, no model
-   internals, no external sources. Reason codes come from a fixed enum.
+   cited decision/account records, permitted tool results and reason-code
+   documentation. The model has no unrestricted external context. Reason codes
+   come from a fixed enum.
 2. **It never makes or influences a trade decision.** It narrates a decision the
-   deterministic engine has already made. This is what keeps the system outside
-   the LLM provider's high-risk "financial decisions" category.
+   deterministic engine has already made. User-directed simulated orders need
+   explicit confirmation and tool-layer authorization.
 3. **Statistics first, narrative second** for failure analysis. The LLM may not
    reference a cluster that was not computed.
 4. **Outputs are cached** for reproducibility and cost control. Backtests never
@@ -150,23 +150,24 @@ speculate or the grounding rule would have to be weakened.
 Buy the language model: text generation is mature and commoditised, and it is
 not where this project's contribution lies.
 
-Build the classifiers: tabular market-regime classification has no managed
-service, and their calibration and per-fold evaluation are the substance of the
-graded ablation.
+Keep the local classifiers to generate model scores and varied decision records.
+Their calibration and per-fold evaluation remain supporting evidence; the
+inspector is the main graded contribution.
 
 ---
 
 ## 4. AI tasks not used, stated deliberately
 
-Information retrieval and RAG (no document corpus), speech recognition,
-text-to-speech, vision and OCR, and text classification or structured
-extraction. The last of these was removed with the news gate on 2026-08-31.
+Speech recognition, text-to-speech, vision, OCR and news-text extraction are
+out of scope. The news gate was removed on 2026-08-31. Retrieval over the
+project’s own records is part of the core inspector.
 
 ---
 
 ## 5. How the built models are measured
 
-Two layers. Only one decides.
+ML and trading metrics describe the evidence-generating models. The inspector
+evaluation measures project success.
 
 **ML metrics, supporting.** Per-class precision, recall and F1; ROC-AUC; PR
 curves; per-regime confusion matrices; calibration curves; Brier score.
