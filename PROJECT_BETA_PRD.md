@@ -1,6 +1,6 @@
 # PROJECT BETA - Product Requirements Document
 
-**Version:** 4.0 draft, revised 2026-09-10 after Chris's Phase 1 feedback.
+**Version:** 4.0 draft. Direction revised after Chris’s Phase 1 feedback; team responsibilities and baseline plan updated 2026-09-13.
 
 **Governing direction:** PROJECT BETA is an evidence-grounded inspector and
 agent over a simulated trading account. It is not a trading-performance product.
@@ -312,10 +312,10 @@ names.
 | E3 | Open-weight model in the same harness |
 | Oracle | Deterministic upper bound reading directly from records |
 
-`E0`, `E1`, `E2` and `Oracle` are **core measured systems**. `E3` is **planned if
-schedule allows** and is cuttable before core inspector delivery is threatened
-(`Project_Outline.md` §14, cut ladder item 5). Cutting `E3` requires no harness
-change, because every system runs through the same answerer interface.
+`E0`, `E1`, `E2`, `E3` and `Oracle` are measured alongside Full. The current M2
+plan uses E3 as its open-source reference baseline, owned by Thomas. Any
+deferral must record the effect on milestone requirements (`DECISIONS.md` #29).
+Every system uses the same answerer interface.
 
 Trading names remain:
 
@@ -377,22 +377,26 @@ The project is release-ready when:
 5. Simulated order placement requires confirmation.
 6. Cross-account attempts are refused or blocked.
 7. The evaluation harness runs the 60-case subset, then the full 200-case suite.
-8. E0, E1, E2, and Oracle are measured; E3 is measured if schedule allows.
+8. E0, E1, E2, E3 and Oracle are measured alongside Full.
 9. Faithfulness, block rate, refusal, false refusal, contradiction rate, cost,
    latency, and audit time are reported.
 10. No live-money path exists.
 11. No market data, credentials, or full reconstructive decision logs are
     committed.
 
-## 14. Proposed Work Split
+## 14. Work Split
 
-This split is a planning assumption until Henry and Jacky agree.
+Thomas Hefner will join Henry Dao and Jacky Au-Yeung. Scope remains unchanged.
+This updates responsibilities using the current M2 work plan (September 13).
 
-| Stream | Proposed owner |
+| Stream | Owner |
 |---|---|
-| Inspector, refusal policy, grounding, MCP/agent integration | Henry |
-| Decision records, rule-state traces, account data, tier-2 aggregates | Jacky |
-| Evaluation set, red-team suite, audit test, cost/latency report | Shared |
+| Inspector, refusal policy, grounding, MCP/agent integration, harness and E0/E1/E2/Full | Henry |
+| Decision records, rule-state traces, account data, Tier 1/2 cases and Tier 2 keys | Jacky |
+| Tier 3 refusal cases, red-team corpus, E3 reference baseline and cost/latency report | Thomas |
+| Tier-label cross-review, human audit, documentation and demo | Shared |
 
-If Jacky prefers a different stream or has different capacity, adjust this plan
-before creating owned issues.
+Jacky computes Tier 2 answer keys independently of Henry’s answering path.
+Thomas writes refusal cases against the agreed case contract, with Jacky
+reviewing their tier assignments. See `Project_Outline.md` §13 for the detailed
+split and §16 for handoffs.

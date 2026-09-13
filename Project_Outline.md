@@ -1,6 +1,6 @@
 # PROJECT BETA - Project Outline
 
-**Current direction, revised 2026-09-10 after Chris's Phase 1 feedback.**
+**Current direction: revised after Chris’s Phase 1 feedback; team responsibilities updated 2026-09-13.**
 
 PROJECT BETA is an evidence-grounded AI inspector and agent for a simulated
 trading account. It answers questions about account activity, orders, positions,
@@ -274,9 +274,10 @@ systems `B1` and `B2`.
 | E3 | Open-weight model | Are results architecture-dependent or provider-dependent? |
 | Oracle | Deterministic upper bound | Reads directly from records; not a competitor |
 
-`E0`, `E1`, `E2` and `Oracle` are core and are measured. `E3` is planned if
-schedule allows and is cuttable before core inspector delivery is threatened; it
-sits at item 5 of the cut ladder in §14, and cutting it costs no harness change.
+`E0`, `E1`, `E2`, `E3` and `Oracle` are measured alongside Full. The current M2
+plan uses E3 for the open-source reference baseline required when applicable.
+Thomas owns that run. Any deferral needs an explicit milestone review
+(`DECISIONS.md` #29).
 
 Trading-system names remain unchanged:
 
@@ -321,25 +322,29 @@ checking whether required confirmation happened before the write.
 
 ## 13. Work Breakdown And Ownership
 
-Two-person team: Henry Dao and Jacky Au-Yeung. The split below was agreed on
-2026-09-11.
+The team is Henry Dao, Jacky Au-Yeung and incoming member Thomas Hefner.
+Thomas will join the existing scope. The split below carries forward the
+Henry/Jacky agreement recorded on September 11 and the Thomas responsibilities
+in the current M2 work plan, updated September 13.
 
 | Stream | Contents | Owner |
 |---|---|---|
-| Explanation and agent layer | Inspector, refusal path, grounding, MCP/agent integration | Henry |
+| Inspector and agent layer | Answering path, refusal policy, grounding, MCP/agent integration | Henry |
+| Evaluation harness and main baselines | Shared answerer interface, retrieval modes, metrics, E0, E1, E2 and Full | Henry |
 | Evidence layer | Decision records, rule-state traces, shadow outcomes, provenance | Jacky |
-| Tier 2 aggregation and answer keys | Aggregate scripts and answer-key computation | Jacky |
+| Tier 2 aggregation and answer keys | Aggregate scripts and independent answer-key computation | Jacky |
 | Simulated account layer | Accounts, balances, positions, order history, confirmation records | Jacky |
-| Evaluation set | 200 questions, tier labels, Tier 2 question drafting, evidence manifest inputs, false-refusal checks | Shared |
-| Red team and audit | Cross-account probes, advice elicitation, confirmation-bypass tests, human audit | Shared |
-| Cost and latency | Model-call cost, retrieval latency, tool latency, harness runtime | Shared |
-| Docs and demo | README, cards, architecture diagram, demo video, final report | Shared |
+| Evaluation cases | Tier 1/2 generator and keys; merge all tiers into one case file | Jacky, with team cross-review |
+| Refusal and red-team cases | Tier 3 boundary reasons, prompt injection, advice and unsupported-claim probes | Thomas, with Jacky reviewing tier labels |
+| Open-weight reference baseline | E3 through the common answerer interface | Thomas |
+| Cost and latency | Measure model and harness runs; maintain the comparison table | Thomas |
+| Human audit | Three unfamiliar readers and the 60-second audit test | Shared |
+| Docs and demo | Henry assembles the report; each member documents their contribution | Shared |
 
-Jacky owns the Tier 2 aggregate scripts and answer-key computation alone. Henry
-builds the answering path, so a key computed by the same person could carry one
-mistake into both the answer and the key meant to check it. Tier 2 is the only
-tier where this bites: tier 1 keys are single-record lookups, and tier 3 falls
-out of the generator as the no-solution case.
+Jacky computes Tier 2 keys independently of Henry’s answering path. Thomas
+writes refusal cases against the agreed case contract. Each member’s tier
+assignments receive review from someone else. Confirm capacity and first-task
+handoffs together before assigning new issues.
 
 ## 14. Cut Ladder
 
@@ -349,7 +354,8 @@ If schedule tightens, cut in this order:
 2. Simulated order placement; keep read-only account inspection.
 3. Multiple accounts; keep one account and remove cross-account tests.
 4. Open-ended tier-2 aggregation; keep five fixed precomputed aggregates.
-5. E3 open-weight baseline.
+E3 supplies the M2 open-source reference baseline. Do not cut it automatically;
+record any deferral and its effect on the milestone requirements.
 
 The floor is still a complete capstone: inspector, 200-question evaluation,
 grounding/refusal metrics, and red-team tests.
@@ -365,15 +371,10 @@ grounding/refusal metrics, and red-team tests.
 - The model cannot widen its own account permissions.
 - User text and stored text are treated as data, not instructions.
 
-## 16. Jacky Discussion Checklist
+## 16. Team Handoff Checklist
 
-Before treating ownership as settled, discuss:
-
-1. Which stream Jacky wants to own.
-2. How many hours per week he can realistically give.
-3. Whether he is comfortable with Python, pandas, tests, branches, and pull
-   requests.
-4. Whether he wants portfolio depth, finance learning, or a contained build
-   task.
-5. How to make both contributions visible in issues, commits, tests, and PR
-   review.
+1. Walk Thomas through the records, case contract and evaluation tiers.
+2. Confirm each member’s availability and first task for M2.
+3. Keep Tier 2 key computation with Jacky and cross-review tier labels.
+4. Agree the handoffs between the record corpus, cases, answerers and results.
+5. Make each contribution visible in issues, commits, tests and PR reviews.

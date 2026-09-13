@@ -4,7 +4,7 @@
 
 > ⚠️ **Paper trading only. Not investment advice.** No real money is at risk at any point. There is no live-money code path in this repository, and a test enforces its absence.
 
-AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Two-person team: Henry Dao and Jacky Au-Yeung.
+AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Team: Henry Dao, Jacky Au-Yeung and incoming member Thomas Hefner. Thomas’s arrival changes responsibilities, with the capstone scope unchanged.
 
 ---
 
@@ -52,7 +52,7 @@ Alpaca's Terms & Conditions and Customer Agreement §30 both prohibit reproducin
 
 A fresh clone plus a legitimately-obtained dataset matching the recorded hash reproduces the published tables. This is a licence constraint, stated rather than worked around.
 
-**Two feeds, deliberately.** Backtests use the SIP consolidated feed (2016-06-10 onward, ~10 years, true market volume). Live paper trading uses IEX, the only real-time feed available on the free tier. IEX carries roughly **3.16%** of consolidated volume, so all volume-derived features are scale-free by construction. Every result records which feed produced it, and results from different feeds are never compared.
+**Two feeds, deliberately.** Backtests use the SIP consolidated feed (2016-06-10 onward, ~10 years, true market volume). Live paper trading uses IEX, the only real-time feed available on the free tier. IEX carries roughly **3.16%** of consolidated volume, so volume-derived features are excluded after the feed-transfer test failed its pre-committed threshold (`DECISIONS.md` #2). Every result records which feed produced it, and results from different feeds are never compared.
 
 ## Guardrails already enforced
 
@@ -78,7 +78,7 @@ The load-bearing property: the AI layer's outputs enter the backend as **data, n
 
 ## Status
 
-Week 1 of 14. Scope, evaluation design, licensing audit and safety plan are complete; the data architecture is verified. The pipeline is under construction. See the project documents for the full specification.
+As of September 13, 2026, the trading pipeline and first graded trading run are complete. The run returned `no_claim`. The next milestone is the inspector, a runnable evaluation harness and the first 60 cases. See [Project_Outline.md](Project_Outline.md) for scope and team responsibilities.
 
 ## Contributing
 
