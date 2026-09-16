@@ -4,7 +4,7 @@
 
 > ⚠️ **Paper trading only. Not investment advice.** No real money is at risk at any point. There is no live-money code path in this repository, and a test enforces its absence.
 
-AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Team: Henry Dao, Jacky Au-Yeung and incoming member Thomas Hefner. Thomas’s arrival changes responsibilities, with the capstone scope unchanged.
+AI Capstone (CIS 5980), Penn Engineering - Fall 2026. Team: Henry Dao and Jacky Au-Yeung. Thomas Hefner may join, subject to a joint team decision and agreement on responsibilities. The capstone scope remains unchanged.
 
 ---
 
