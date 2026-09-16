@@ -276,7 +276,7 @@ systems `B1` and `B2`.
 
 `E0`, `E1`, `E2`, `E3` and `Oracle` are measured alongside Full. The current M2
 plan uses E3 for the open-source reference baseline required when applicable.
-Thomas owns that run. Any deferral needs an explicit milestone review
+Ownership of that run must be confirmed independently of Thomas’s membership. Any deferral needs an explicit milestone review
 (`DECISIONS.md` #29).
 
 Trading-system names remain unchanged:
@@ -315,17 +315,21 @@ checking whether required confirmation happened before the write.
 | 8 | Full evaluation set | 200 questions, grading harness, first red-team pass |
 | 9 | Alpha | End-to-end inspector over account and decision records |
 | 10 | State-changing tools | Simulated order placement with confirmation and authorization tests |
-| 11 | Human audit | 60-second audit with three unfamiliar readers |
+| 11 | Inspector application | Browser UI, read-side endpoints, citations, failure states and application tests | Proposed: Henry in Scenario A; Thomas in Scenario B, subject to agreement |
+| Human audit | 60-second audit with three unfamiliar readers |
 | 12 | Release candidate | Cost/latency report, model/system cards, reproducibility check |
 | 13 | Polish | Demo script, final report structure, cleanup |
 | 14 | Ship | Final report, demo video, presentation |
 
 ## 13. Work Breakdown And Ownership
 
-The team is Henry Dao, Jacky Au-Yeung and incoming member Thomas Hefner.
-Thomas will join the existing scope. The split below carries forward the
-Henry/Jacky agreement recorded on September 11 and the Thomas responsibilities
-in the current M2 work plan, updated September 13.
+The team is Henry Dao and Jacky Au-Yeung. Thomas Hefner may join, subject to
+Henry and Jacky’s joint decision and a mutually agreed technical role. Scope
+remains unchanged.
+
+The table distinguishes existing ownership from proposed application ownership.
+Confirm coverage of unassigned M2 tasks by September 14, independently of the
+membership decision. New assignments require Henry and Jacky’s agreement.
 
 | Stream | Contents | Owner |
 |---|---|---|
@@ -335,14 +339,14 @@ in the current M2 work plan, updated September 13.
 | Tier 2 aggregation and answer keys | Aggregate scripts and independent answer-key computation | Jacky |
 | Simulated account layer | Accounts, balances, positions, order history, confirmation records | Jacky |
 | Evaluation cases | Tier 1/2 generator and keys; merge all tiers into one case file | Jacky, with team cross-review |
-| Refusal and red-team cases | Tier 3 boundary reasons, prompt injection, advice and unsupported-claim probes | Thomas, with Jacky reviewing tier labels |
-| Open-weight reference baseline | E3 through the common answerer interface | Thomas |
-| Cost and latency | Measure model and harness runs; maintain the comparison table | Thomas |
+| Refusal and red-team cases | Tier 3 boundary reasons, prompt injection, advice and unsupported-claim probes | Unassigned |
+| Open-weight reference baseline | E3 through the common answerer interface | Unassigned |
+| Cost and latency | Measure model and harness runs; maintain the comparison table | Unassigned |
+| Inspector application | Browser UI, read-side endpoints, citations, failure states and application tests | Proposed: Henry in Scenario A; Thomas in Scenario B, subject to agreement |
 | Human audit | Three unfamiliar readers and the 60-second audit test | Shared |
 | Docs and demo | Henry assembles the report; each member documents their contribution | Shared |
 
-Jacky computes Tier 2 keys independently of Henry’s answering path. Thomas
-writes refusal cases against the agreed case contract. Each member’s tier
+Jacky computes Tier 2 keys independently of Henry’s answering path. The owner of refusal cases remains to be agreed. Each member’s tier
 assignments receive review from someone else. Confirm capacity and first-task
 handoffs together before assigning new issues.
 
@@ -354,6 +358,7 @@ If schedule tightens, cut in this order:
 2. Simulated order placement; keep read-only account inspection.
 3. Multiple accounts; keep one account and remove cross-account tests.
 4. Open-ended tier-2 aggregation; keep five fixed precomputed aggregates.
+
 E3 supplies the M2 open-source reference baseline. Do not cut it automatically;
 record any deferral and its effect on the milestone requirements.
 

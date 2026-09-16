@@ -313,7 +313,7 @@ names.
 | Oracle | Deterministic upper bound reading directly from records |
 
 `E0`, `E1`, `E2`, `E3` and `Oracle` are measured alongside Full. The current M2
-plan uses E3 as its open-source reference baseline, owned by Thomas. Any
+plan uses E3 as its open-source reference baseline, with ownership to be confirmed. Any
 deferral must record the effect on milestone requirements (`DECISIONS.md` #29).
 Every system uses the same answerer interface.
 
@@ -386,17 +386,19 @@ The project is release-ready when:
 
 ## 14. Work Split
 
-Thomas Hefner will join Henry Dao and Jacky Au-Yeung. Scope remains unchanged.
-This updates responsibilities using the current M2 work plan (September 13).
+Thomas Hefner may join Henry Dao and Jacky Au-Yeung. Scope remains unchanged.
+Henry and Jacky will decide together after discussing a mutually acceptable role.
+Application ownership below is proposed. Confirm unassigned M2 coverage by
+September 14 independently of membership; Henry and Jacky must agree assignments.
 
 | Stream | Owner |
 |---|---|
 | Inspector, refusal policy, grounding, MCP/agent integration, harness and E0/E1/E2/Full | Henry |
 | Decision records, rule-state traces, account data, Tier 1/2 cases and Tier 2 keys | Jacky |
-| Tier 3 refusal cases, red-team corpus, E3 reference baseline and cost/latency report | Thomas |
+| Tier 3 refusal cases, red-team corpus, E3 reference baseline and cost/latency report | Unassigned |
+| Inspector application, read-side endpoints and application tests | Proposed: Henry in Scenario A; Thomas in Scenario B, subject to agreement |
 | Tier-label cross-review, human audit, documentation and demo | Shared |
 
 Jacky computes Tier 2 answer keys independently of Henry’s answering path.
-Thomas writes refusal cases against the agreed case contract, with Jacky
-reviewing their tier assignments. See `Project_Outline.md` §13 for the detailed
+The refusal-case owner remains to be agreed, with Jacky reviewing tier assignments. See `Project_Outline.md` §13 for the detailed
 split and §16 for handoffs.
