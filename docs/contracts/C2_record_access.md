@@ -1,6 +1,6 @@
 # C2: record access
 
-**Draft, not frozen. Revised 2026-09-15, third pass.** Henry drafted this. It
+**Draft, not frozen. Revised 2026-09-16, sixth pass.** Henry drafted this. It
 freezes only when Henry and Jacky both agree it, in writing, after the questions
 in section 11 are answered. A review with no objections is not a freeze.
 Changes after the freeze need a `DECISIONS.md` entry.
@@ -33,8 +33,9 @@ So:
 
 **What this document is.** A specification of intended behaviour and the checks
 that would demonstrate it. The statements about how `grounding.py` behaves today
-were checked by running it; everything else here describes code that does not
-exist yet. Nothing in this contract is evidence that an implementation works, and
+were checked by running it, and the statements about what the simulator and
+models emit today were checked against the code; everything else here describes
+code that does not exist yet. Nothing in this contract is evidence that an implementation works, and
 the acceptance checks in section 10 have not been run.
 
 ## 2. Storage
@@ -62,6 +63,7 @@ config against different bars is a different body of evidence.
   "exported_at": "2026-09-16T04:10:00Z",
   "exporter_version": "export_records_v1",
   "code_revision": "e3ce659",
+  "reason_codes": ["NO_GATE", "REGIME_PERMITS", "..."],
   "cost_basis": "base",
   "replay_check": {"method": "daily_returns_vs_fold_results", "status": "not_run"},
   "systems": ["B2", "M1", "M2"],
@@ -71,6 +73,9 @@ config against different bars is a different body of evidence.
   "notes": "H1 decisions-only export"
 }
 ```
+
+Partial example: `reason_codes` is shortened here. A real manifest lists every
+code in `REASON_CODES` at `code_revision` (section 5.3).
 
 **H1 may export decisions only.** A corpus with `traces: false` is valid and
 loadable. Traces arrive with J1, aggregates with J5, each adding its file, its
@@ -101,6 +106,14 @@ for several reasons and only one of them means something is broken:
 | Retrieval ran and returned nothing for an answerable case | Not necessarily. Could be a retrieval failure rather than a corpus fault |
 | A case C1 labels answerable names an ID the corpus should contain | Yes. Corpus or case defect, to be fixed, not scored as a refusal success |
 
+C1 declares an intended absence inside a refusal boundary (C1 §6.1): an absent
+part (`CorpusIncomplete`), an absent record (`MissingEvidence`), or a field
+legitimately absent from a record that exists because its presence condition does
+not hold, which raises no error (section 6).
+`CorpusMalformed` is never a declared absence. A declared absence is verified
+mechanically; whether the question is therefore unanswerable is a recorded
+review, not a loader result (C1 §6.3).
+
 Full corpora stay out of git (section 9).
 
 ## 3. Evidence IDs
@@ -108,7 +121,7 @@ Full corpora stay out of git (section 9).
 | Form | Example |
 |---|---|
 | `dec:<corpus>:<system>:<trade_id>` | `dec:5cd99d0d-ab573530-01:M2:trade_00123` |
-| `trace:<corpus>:<system>:<fold>:<iso8601>` | `trace:5cd99d0d-ab573530-01:B2:1:2021-03-04T10:35:00-05:00` |
+| `trace:<corpus>:<system>:<fold>:<iso8601>` | `trace:5cd99d0d-ab573530-01:B2:3:2021-03-04T10:35:00-05:00` |
 | `agg:<corpus>:<script>@<script_version>:<args_hash>` | `agg:5cd99d0d-ab573530-01:most_common_rejection@v1:9f12ab` |
 
 **Why the system is in the ID.** `systems.py` generates candidates once and runs
@@ -136,20 +149,22 @@ Rules: IDs are stable, never reused after deletion, and timestamps are full ISO
 ## 4. Record shapes
 
 **DecisionRecord.** As emitted by `execution/simulator.py` (`_record_for`), plus
-the export additions in section 5. Approved, reduced, rejected and
-no-bar-at-fill decisions are all written today, which is what gives the case set
-its variety.
+the export additions in section 5. Approved, reduced and rejected decisions are
+written today, including rejections at the fill bar and `NO_BAR_AT_FILL`, which
+is what gives the case set its variety. No code path emits `delayed`. Filled
+records also gain an `outcome` block at exit, which is not projected
+(section 5.3).
 
 **Rule-state trace.** J1 owns the implementation. C2 fixes only what the loader
 and the projection need:
 
 ```json
 {
-  "evidence_id": "trace:5cd99d0d-ab573530-01:B2:1:2021-03-04T10:35:00-05:00",
+  "evidence_id": "trace:5cd99d0d-ab573530-01:B2:3:2021-03-04T10:35:00-05:00",
   "timestamp": "2021-03-04T10:35:00-05:00",
   "system": "B2",
-  "fold": 1,
-  "strategy_version": "momentum_breakout_v3",
+  "fold": 3,
+  "strategy_version": "mom_v1",
   "conditions": [
     {"name": "dist_high_78", "required": ">= 0", "observed": -0.0031, "passed": false}
   ],
@@ -197,16 +212,24 @@ declared value shapes:
 }
 ```
 
-Each script declares its `value_kind` and `columns` once. The projection permits
-only declared columns, with declared types. Arguments are **not** stringified:
-stringifying hides numbers from the checker while the model still reads them,
-which is the worst of both. Instead, argument values are restricted to the
-declared enumerations and date strings in section 6.
+Each script declares its `value_kind` and its typed `columns` once. Aggregate
+cells and mapping values are never null. The projection permits only declared
+columns, with declared types. Arguments are **not** stringified: stringifying
+hides numbers from the checker while the model still reads them, which is the
+worst of both. Instead, argument values are restricted to the declared
+enumerations and date strings in section 6.
 
-## 5. Fields that are not emitted yet
+**Computed numbers live here.** C1 case derivations select existing values and
+never compute (C1 §5.1), and the number check permits only numbers present in the
+evidence (section 7). A total, count, rate or difference that a Tier 2 answer
+states must therefore be a declared scalar, mapping value or column of an
+aggregate.
 
-Two gaps, both in evidence production rather than model development. Neither
-requires changing trading M1 or M2.
+## 5. Emitted today, required here, and dependent on other work
+
+Sections 5.1 and 5.2 are gaps in evidence production that this contract requires.
+Neither changes trading M1 or M2. Section 5.3 records what depends on the draft
+simulator correction plan.
 
 ### 5.1 `risk.position_size`
 
@@ -297,6 +320,26 @@ from the fold, both ISO dates, half-open at the end like the fold itself.
 edits to evidence production, which is a different question from who develops the
 trading models.
 
+### 5.3 Dependency on the simulator correction plan
+
+`Project-Beta-Private/M1_M2_Simulator_Correction_Plan.md` is a **draft proposal,
+not approved or implemented**. Nothing here approves any policy in it. It
+proposes execution changes that would alter what records say, so the parts of
+this contract it touches are listed.
+
+| Topic | Emitted today (`simulator.py`, unchanged since `926b48e`) | Required by this contract | Depends on an approved, implemented correction |
+|---|---|---|---|
+| Reason codes | 14 codes in `REASON_CODES` (`simulator.py:56-71`) | Records use only codes in the manifest's `reason_codes`, copied from `REASON_CODES` at `code_revision`. No fixed count | The plan proposes new rejection codes. Their names and number are not final, and no case may use one before it appears in a manifest |
+| `execution.commission` | Entry commission only (`simulator.py:393-399`) | Projected, meaning entry commission | Any exit-commission field |
+| `outcome` block | `exit_timestamp`, `exit_reason`, `pnl`, `mae`, `mfe`, `r_multiple` on filled records (`simulator.py:346-353`). `pnl` omits entry commission when commission is nonzero | Not projected. No C1 key reads it | Net pnl, new exit reasons, exits on the entry bar and at session and window boundaries |
+| Which decisions exist, and what they say | A fill can land in the next session, be held overnight, or stay unresolved at a window end | Records are evidence of the code at `code_revision`, not of intended policy | Approved entry and exit rules would change later position conflicts, sizing, halts and M2 thresholds, so individual decisions and aggregate counts can change |
+
+**Consequence for C1.** A key and its boundary review are valid only against the
+corpus they were validated on. A corpus exported after an implemented correction
+is a new `corpus_id`. Binding a case set to it produces a new `set_id` even if
+every expected value is unchanged; every C1 check and review re-runs, and the
+original set is preserved (C1 §9).
+
 ## 6. Projection: the permitted fields
 
 `project(record, view="answerer")` returns only what is listed here, with the
@@ -311,23 +354,97 @@ later.
 | `timestamp` | ISO 8601 string |
 | `system`, `symbol`, `signal_type`, `strategy_version` | string |
 | `signal_strength` | number |
-| `decision` | one of `approved`, `reduced`, `delayed`, `rejected` |
-| `decision_reason_codes` | list of strings, each in `REASON_CODES` (14 codes) |
+| `decision` | one of `approved`, `reduced`, `rejected`; `delayed` is accepted but not emitted today |
+| `decision_reason_codes` | list of strings, each in the manifest's `reason_codes` (section 5.3) |
 | `risk.sizing_rule` | string |
 | `risk.risk_per_trade`, `risk.size_multiplier` | number |
-| `risk.position_size` | number, requested quantity, present only where sizing happened (section 5.1) |
+| `risk.position_size` | number, requested quantity (section 5.1) |
 | `instrument.selected`, `instrument.selection_rule` | string |
 | `instrument.tradeable` | boolean |
 | `entry_price_ref`, `stop_price`, `target_price` | number |
-| `regime.label` | one of `uptrend`, `downtrend`, `choppy` |
-| `regime.probs` | object, keys restricted to those three labels, values numbers |
-| `regime.model_version`, `signal_quality.model_version` | string |
+| `regime.label` | one of `uptrend`, `downtrend`, `choppy`, **or null** |
+| `regime.model_version` | string |
+| `regime.probs` | object, keys restricted to the three labels, values numbers |
+| `regime.vol_flag` | one of `low`, `high` |
+| `signal_quality.model_version` | string |
 | `signal_quality.p_profit`, `signal_quality.threshold` | number |
 | `signal_quality.m2_threshold_fold` | integer |
 | `signal_quality.m2_threshold_window` | string, `YYYY-MM-DD..YYYY-MM-DD` |
-| `signal_quality.abstained` | boolean |
-| `execution.fill_price`, `execution.slippage_bps`, `execution.commission` | number, present only where the decision filled |
-| `execution.filled_quantity` | number, present only where the decision filled |
+| `signal_quality.abstained` | boolean, only `true` |
+| `execution.fill_price`, `execution.slippage_bps`, `execution.commission` | number. `commission` is the entry commission (section 5.3) |
+| `execution.filled_quantity` | number |
+
+**Presence rules.** Every projected field falls in one of three classes, and each
+condition is read from the record itself, so `load_corpus` enforces all of them.
+
+| Class | Field | Condition, observable on the record | When the condition does not hold |
+|---|---|---|---|
+| Unconditionally required | `evidence_id`, `trade_id`, `timestamp`, `system`, `symbol`, `signal_type`, `strategy_version`, `signal_strength`, `decision`, `decision_reason_codes`, `risk.sizing_rule`, `risk.risk_per_trade`, `risk.size_multiplier`, `instrument.*`, `entry_price_ref`, `stop_price`, `target_price` | Always | Not applicable |
+| Required when | `regime.label`, `regime.model_version` | `system` is `M1` or `M2` | Must be absent (B2) |
+| Required when | `regime.probs`, `regime.vol_flag` | `regime.label` is present and not null | Must be absent |
+| Required when | `signal_quality.model_version`, `signal_quality.p_profit`, `signal_quality.threshold` | `decision_reason_codes` contains `SQ_ABOVE_THRESHOLD`, `SQ_BELOW_THRESHOLD` or `SQ_ABSTAINED` | Must be absent: the regime gate rejected first, or no signal-quality model trained on the fold (section 5.2) |
+| Required when | `signal_quality.m2_threshold_fold`, `signal_quality.m2_threshold_window` | `signal_quality.threshold` is present, in an exported corpus | Must be absent |
+| Required when | `signal_quality.abstained`, as `true` | `decision_reason_codes` contains `SQ_ABSTAINED` | Must be absent |
+| Required when | `execution.fill_price`, `execution.slippage_bps`, `execution.commission`, `execution.filled_quantity` | `decision` is `approved` or `reduced` | Must be absent (`rejected`) |
+| Required when | `risk.position_size` | `decision` is `approved` or `reduced`, or `decision_reason_codes` contains `RISK_ZERO_SIZE`, `RISK_POSITION_OPEN`, `RISK_DAILY_LOSS_HALT`, `RISK_DRAWDOWN_HALT`, `NO_BAR_AT_FILL` or `FILL_BAR_BEFORE_DECISION` | Must be absent: a gate rejected the candidate before sizing (section 5.1) |
+
+- A violation in either direction, a required field missing or a field present
+  where its condition fails, is `CorpusMalformed` at load. So is a null in any
+  field other than `regime.label`.
+- A field absent because its condition does not hold is **legitimately absent**.
+  It raises no error, and it is the only absence C1 accepts as a missing-field
+  refusal (C1 §6.1). No new loader error is needed.
+- A **present null** is kept by `project()` and differs from an absent field.
+- The conditions reflect the simulator and runner at `code_revision`
+  (`simulator.py:370-431`, `CompositeGate` order, `signal_quality.py:283-317`)
+  and the export in sections 5.1 and 5.2. The `risk.position_size` code list
+  depends on the reason codes, which may change with the simulator correction
+  plan (section 5.3).
+
+**Reachability of `regime.label: null`.** The type allows it because the regime
+gate has a defensive branch for a missing feature row (`models/regime.py:224-233`).
+That branch is not reached by the registered strategies:
+`MomentumBreakout.generate_candidates` skips bars without a feature row
+(`strategy/momentum.py:118-120`), as do both secondary strategies
+(`strategy/secondary.py:106-107`, `:153-154`), and the simulator evaluates gates
+only at a candidate's own bar (`simulator.py:412-414`). A normal historical export
+is therefore not expected to contain a null label. A record with one is legal
+only as a deliberately constructed fixture, such as a loader test.
+The signal-quality gate's matching branch (`models/signal_quality.py:287-292`)
+emits `SQ_BELOW_THRESHOLD` with no `signal_quality` block. It is doubly
+unreachable, because the regime gate runs first on the same missing row, and a
+record showing it fails the presence rule above.
+
+**What export validation establishes, because the record cannot show it.**
+
+- Every candidate in a fold's test window has exactly one decision record per
+  exported system, and no record exists without a candidate.
+- `signal_quality.m2_threshold_fold` and `m2_threshold_window` are the fold that
+  fitted the model and its validation window. The loader can only check format
+  and that records sharing a fold share one window and one threshold.
+- The absence of a `signal_quality` block on an M2 record with no `SQ_` code
+  reflects a regime rejection or an untrained fold, rather than a dropped block.
+- Execution values and `risk.position_size` equal what the simulator computed.
+  The replay check (section 5.2) covers returns, not every field.
+
+**Why `regime.vol_flag` is projected.** M1 cuts a permitted candidate to
+`high_vol_size` when the volatility classifier predicts `high`
+(`models/regime.py:247-253`), recording `REGIME_REDUCES` and the multiplier.
+Without the flag, "why was this trade's size halved?" has a code and a number but
+not the condition that produced them. `regime.vol_prob` stays excluded: the flag
+is the predicted class with no probability cutoff (`regime.py:117`), and no
+planned question needs the probability.
+
+**The risk cap does not set the decision status.** `CompositeGate` sets
+`approved` or `reduced` from the gates' multiplier (`simulator.py:150-157`).
+`_size()` then applies the `max_position` cap and adds `RISK_SIZE_CAPPED`
+(`simulator.py:468-492`), and the record keeps the gates' decision and
+`risk.size_multiplier` unchanged (`simulator.py:419-427`). So a gate-approved
+candidate that is capped stays `approved`, and one M1 already reduced stays
+`reduced`. The only sizing outcome that changes the status is a zero quantity,
+which is recorded as `rejected` (`simulator.py:428-431`). "Was this reduced by the
+risk engine?" is therefore answered from `RISK_SIZE_CAPPED`, not from
+`decision`.
 
 **Traces:** `evidence_id`, `timestamp`, `system`, `fold`, `strategy_version`,
 `conditions[].name` (string), `conditions[].required` (string),
@@ -346,8 +463,10 @@ point of an aggregate.
 
 **Excluded and not citable:** `run_id`, `mode`, `asset_class`, `feed`, `vendor`,
 `config_hash`, `dataset_hash`, `execution.fill_delay_bars`, `source_decision_id`,
-and every run-level configuration value. These are provenance for us rather than
-facts for an answer, and each numeric one would widen what the checker permits.
+`regime.vol_prob`, `signal_quality.p_target_before_stop`, the `outcome` block
+(section 5.3), and every run-level configuration value. These are provenance for
+us, or facts no planned question needs, and each numeric one would widen what the
+checker permits.
 `fill_delay_bars` is a configured constant repeated on every record, not a fact
 about this decision.
 
@@ -391,14 +510,24 @@ Order of operations on a generated answer:
    means an invented ID or date cannot hide inside a masked span.
 4. **`check_explanation()` on the projected evidence**, unchanged, for numbers
    and the nine controlled terms.
-5. **Reason codes.** Any token matching `[A-Z][A-Z0-9_]{2,}` that is one of the 14
-   `REASON_CODES` must appear in the cited evidence. Today a fabricated
+5. **Reason codes.** Any token matching `[A-Z][A-Z0-9_]{2,}` that is in the
+   manifest's `reason_codes` must appear in the cited evidence. Today a fabricated
    `REGIME_BLOCKS` passes against a record whose only code is
    `SQ_BELOW_THRESHOLD`; this closes that.
 6. **Threshold attribution.** An answer citing a threshold value must also name
    the validation window from the same record, matched as a validated span in
    step 2. A threshold with no window, or with a window belonging to another
    fold, fails.
+
+**Derived numbers.** Step 4 permits a number only if it, or its percentage or
+rounding, appears in the projected evidence supplied to the answer
+(`grounding._matches`). An answer that computes a number the evidence does not
+carry fails, even when the arithmetic is right. This is intended and is not
+widened: admitting sums or differences of evidence values would admit most small
+fabricated numbers. Computed numbers are instead produced by aggregate scripts,
+reproduced by acceptance check 22, and cited like any other evidence (section 4).
+C1 keys never require an answer to compute (C1 §5.1). Acceptance check 23 covers
+the conflict.
 
 **What exists today:** step 4 only. **New in H5 and H6:** steps 1, 2, 3, 5 and 6,
 as a thin wrapper around `enforce_grounding`. `grounding.py` itself is not
@@ -408,8 +537,10 @@ None of this shows an answer is true. It shows that every checkable claim traces
 to evidence the answer was given, and that its citations resolve.
 
 **Refusal behaviour is not a score.** This contract says what the system does
-when evidence is absent: `CorpusIncomplete` and `MissingEvidence` produce a
-refusal that names what is missing, and `CorpusMalformed` aborts. Whether that
+when evidence is absent: `CorpusIncomplete`, `MissingEvidence` and a
+legitimately absent field produce a refusal that names what is missing, and
+`CorpusMalformed` aborts. A declared absence alone does not make that refusal
+correct; C1's boundary review does (C1 §6.3). Whether that
 refusal was the *correct* answer belongs to C1 and the harness, case by case, as
 section 2 sets out:
 
@@ -430,7 +561,7 @@ them apart. It does not decide which one counts as success.
 ```python
 load_corpus(path: Path) -> Corpus
 Corpus.get(evidence_id: str) -> dict            # MissingEvidence / CorpusIncomplete
-Corpus.evidence_for(case: dict) -> list[dict]   # resolves C1 evidence_ids, in order
+Corpus.evidence_for(key: dict) -> list[dict]    # resolves C1 required_evidence_ids, in order
 project(record: dict, view: str = "answerer") -> dict
 ```
 
@@ -438,12 +569,22 @@ project(record: dict, view: str = "answerer") -> dict
 - A missing record never returns an empty dict. An empty dict is how a refusal
   turns into an invented answer.
 - `load_corpus` validates the manifest against the files: declared parts present,
-  counts matching, IDs unique, and every **non-null** `decision_evidence_id` in a
+  counts matching, IDs unique, every reason code in the manifest's
+  `reason_codes`, and every **non-null** `decision_evidence_id` in a
   trace resolving to a decision in this corpus whose `system` matches the trace's
   `system`. Null links are valid and are not an error (section 4). Any failure is
   `CorpusMalformed`.
+- `load_corpus` also enforces every presence rule and nullability rule in
+  section 6, in both directions, and the one-window-per-fold consistency check;
+  a violation is `CorpusMalformed`.
+- `get` returns a record with a legitimately absent field without error. That
+  absence is confirmed by the record's own presence condition and `project()`,
+  not by an error.
 - `evidence_for` raises on the first unresolved ID rather than returning a partial
-  list.
+  list. It reads the evaluator-held key, and only the harness calls it, in
+  oracle-record mode (C1 §2.1). The answering path never receives the key.
+- `get` on a part or record that a C1 refusal declares absent must raise the
+  declared error (C1 §6.1).
 - Read-only. Nothing here writes to a corpus.
 - Retrieval stays separable from generation (`DECISIONS.md` #27), so the harness
   can supply evidence directly, let the system retrieve it, or withhold it.
@@ -522,8 +663,46 @@ These ship with the implementation. Grouped by what they protect.
     reported rather than exported silently.
 19. A fabricated reason code fails against a record carrying a different code.
 
-Checks 1 to 10, 17 and 18 land with the loader and the export. Checks 11 to 16
-and 19 land with the wrapper.
+**Added in the fourth pass**
+
+20. `project()` keeps `regime.vol_flag` and drops `regime.vol_prob`.
+21. A decision record carrying a reason code absent from the manifest's
+    `reason_codes` raises `CorpusMalformed`.
+22. Re-running an aggregate's script at its `script_version` with its `args` over
+    the same corpus reproduces its `value` exactly.
+
+**Added in the fifth pass**
+
+23. **Derived-number conflict.** Evidence: one aggregate table with rows
+    `{"gate": "regime", "rejections": 12}` and
+    `{"gate": "signal_quality", "rejections": 17}`. The answer "29 candidates
+    were rejected" fails step 4 against that evidence alone. The same answer
+    passes step 4 when the supplied evidence also includes an aggregate whose declared
+    scalar is 29. A C1 key with value 29 whose only required evidence is the
+    table fails C1 check 20.
+24. A decision record missing a required field, such as `decision`, raises
+    `CorpusMalformed`. An M1 record missing `regime.label`, an M1 record with a
+    non-null label and no `regime.probs`, a record with an `SQ_` code and no
+    `signal_quality.p_profit`, an `approved` record with no `execution.*`, and a
+    `rejected` record carrying `execution.fill_price` each raise
+    `CorpusMalformed`.
+25. **Constructed fixture, not a historical record.** An M1 record with
+    `regime.label: null`, `regime.model_version` present and no `regime.probs`
+    loads, `get` raises nothing, and `project()` keeps `regime.label: null`. A B2
+    record projects with no `regime` field at all; the two projections differ.
+
+**Added in the sixth pass**
+
+26. An M2 record with `REGIME_BLOCKS` and no `SQ_` code loads with no
+    `signal_quality` fields; the same record with a `signal_quality` block raises
+    `CorpusMalformed`.
+27. A record with `signal_quality.threshold` and no `m2_threshold_fold` in an
+    exported corpus raises `CorpusMalformed`, and two records with the same fold
+    but different windows raise `CorpusMalformed`.
+
+Checks 1 to 10, 17, 18, 20, 21 and 24 to 27 land with the loader and the export.
+Check 22 lands with the aggregate scripts. Checks 11 to 16, 19 and 23 land with
+the wrapper.
 
 ## 11. Open questions for Jacky
 
@@ -537,8 +716,12 @@ anything.
    write, given the simulator's `decision_id` repeats across systems?
 2. Do the three aggregate value kinds, scalar, mapping and table, cover your five
    aggregates, and are per-script declared `columns` how you would write them?
+   Does C1's closed operation list (C1 §5.1) cover the Tier 2 answers you plan to
+   derive from them? C1's operations now only select values, so any total or rate
+   a case needs must be a declared value of one of your aggregates.
 3. Anything in section 6 that should be citable and is not, given the Tier 2
-   questions you expect to write?
+   questions you expect to write? This pass added `regime.vol_flag` for the M1
+   size-reduction question.
 4. Who makes the two evidence-production changes in section 5: the
    `position_size` assignments in `run_backtest`, and the export-time fold and
    window stamping? This is about who edits evidence production. It says nothing
@@ -556,16 +739,30 @@ anything.
 
 ## 12. Relationship to C1
 
-C1 can be drafted now. It cannot be frozen until four things line up with this
+C1 can be drafted now. It cannot be frozen until these line up with this
 document:
 
-- **Evidence IDs**, so `evidence_ids` entries resolve.
-- **Available fields**, so no answer key names a field the corpus does not carry,
-  which is what question 4 above decides for `position_size` and the window.
-- **Aggregate answer shapes**, so Tier 2 keys match scalar, mapping or table
-  rather than assuming a single number.
-- **Missing-evidence and refusal semantics**, so C1 can score a refusal correctly
-  and can tell an unanswerable case apart from a corpus gap.
+- **Evidence IDs**, so `context` and `required_evidence_ids` resolve, declared
+  part and record absences raise their declared errors, and declared
+  conditional-field absences resolve without error.
+- **Evaluator-held evidence.** `evidence_for` resolves `required_evidence_ids`
+  from the key file, for oracle-record mode only (section 8, C1 §2.1).
+- **Available fields**, so no key reads a field the corpus does not project,
+  which is what question 4 decides for `position_size` and the window.
+- **Answer shapes**, so Tier 2 keys derive answers from scalar, mapping or table
+  evidence through C1's operation list, rather than treating the evidence shape
+  as the answer shape.
+- **Missing-evidence and refusal semantics**, including legitimately absent fields
+  and the distinction between verified absence and reviewed unanswerability, so
+  C1 can score a refusal correctly and tell an unanswerable case apart from a
+  corpus gap.
+- **Presence rules** in section 6, so a present null, a legitimately absent
+  field and a missing required field are never confused, and every condition the
+  record can show is enforced at load.
+- **Derived numbers**, so no key or expected answer depends on arithmetic the
+  number check rejects (section 7, acceptance check 23).
+- **Set identity**, so any corpus rebinding produces a new case set rather than
+  an edited one (C1 §9, section 5.3).
 
 Freezing C1 and C2 together, after Jacky's answers, is cheaper than freezing them
 in sequence.
