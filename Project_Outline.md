@@ -323,13 +323,12 @@ checking whether required confirmation happened before the write.
 
 ## 13. Work Breakdown And Ownership
 
-The team is Henry Dao and Jacky Au-Yeung. Thomas Hefner may join, subject to
-Henry and Jacky’s joint decision and a mutually agreed technical role. Scope
+The team is Henry Dao and Jacky Au-Yeung. Membership is closed (#30). Scope
 remains unchanged.
 
-**Offer on the table, 2026-09-18 (`DECISIONS.md` #30).** Henry and Jacky agreed to
-offer Thomas the simulated brokerage core. He has not accepted. Until he does,
-every row below stands as it is, and a decline leaves the team at two people.
+**Membership closed, 2026-09-18 (`DECISIONS.md` #30).** The team is Henry and
+Jacky. Every third-member arrangement was offered and declined, and all are
+withdrawn. The rows below are the two-person split.
 
 The table distinguishes existing ownership from proposed ownership.
 Confirm coverage of unassigned M2 tasks by September 14, independently of the
@@ -341,12 +340,12 @@ membership decision. New assignments require Henry and Jacky’s agreement.
 | Evaluation harness and main baselines | Shared answerer interface, retrieval modes, metrics, E0, E1, E2 and Full | Henry |
 | Evidence layer | Decision records, rule-state traces, shadow outcomes, provenance | Jacky |
 | Tier 2 aggregation and answer keys | Aggregate scripts and independent answer-key computation | Jacky |
-| Simulated account layer | Accounts, balances, positions, order history, confirmation records | Jacky. Offered to Thomas as the brokerage core (#30), pending his acceptance; Jacky otherwise |
+| Simulated account layer | Accounts, balances, positions, order history, confirmation records | Jacky |
 | Evaluation cases | Tier 1/2 generator and keys; merge all tiers into one case file | Jacky, with team cross-review |
 | Refusal and red-team cases | Tier 3 boundary reasons, prompt injection, advice and unsupported-claim probes | Unassigned |
 | Open-weight reference baseline | E3 through the common answerer interface | Unassigned |
 | Cost and latency | Measure model and harness runs; maintain the comparison table | Unassigned |
-| Inspector application | Browser UI, read-side endpoints, citations, failure states and application tests | Proposed: Henry after milestone M2. The earlier Scenario B proposal is superseded by #30 |
+| Inspector application | Browser UI, read-side endpoints, citations, failure states and application tests | Henry, after milestone M2 |
 | Human audit | Three unfamiliar readers and the 60-second audit test | Shared |
 | Docs and demo | Henry assembles the report; each member documents their contribution | Shared |
 

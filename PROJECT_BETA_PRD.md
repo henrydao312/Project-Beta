@@ -386,19 +386,18 @@ The project is release-ready when:
 
 ## 14. Work Split
 
-Thomas Hefner may join Henry Dao and Jacky Au-Yeung. Scope remains unchanged.
-Henry and Jacky will decide together after discussing a mutually acceptable role.
-On 2026-09-18 they agreed to offer him the simulated brokerage core, which he has
-not accepted (`DECISIONS.md` #30). Ownership below is proposed. Confirm unassigned M2 coverage by
+The team is Henry Dao and Jacky Au-Yeung. Membership closed on 2026-09-18
+(`DECISIONS.md` #30): every third-member arrangement was offered, declined and
+withdrawn. Scope remains unchanged. Confirm unassigned M2 coverage by
 September 14 independently of membership; Henry and Jacky must agree assignments.
 
 | Stream | Owner |
 |---|---|
 | Inspector, refusal policy, grounding, MCP/agent integration, harness and E0/E1/E2/Full | Henry |
 | Decision records, rule-state traces, provenance, aggregates, Tier 1/2 cases and Tier 2 keys | Jacky |
-| Simulated brokerage core: accounts, balances, positions, order lifecycle, state and event storage, execution-simulator integration | Offered to Thomas (#30), pending acceptance; Jacky otherwise. Authorization and confirmation enforcement stay with Henry and Jacky |
+| Simulated brokerage core: accounts, balances, positions, order lifecycle, state and event storage, execution-simulator integration | Jacky. Authorization and confirmation enforcement stay with Henry and Jacky |
 | Tier 3 refusal cases, red-team corpus, E3 reference baseline and cost/latency report | Unassigned |
-| Inspector application, read-side endpoints and application tests | Proposed: Henry after milestone M2; the Scenario B proposal is superseded by #30 |
+| Inspector application, read-side endpoints and application tests | Henry, after milestone M2 |
 | Tier-label cross-review, human audit, documentation and demo | Shared |
 
 Jacky computes Tier 2 answer keys independently of Henry’s answering path.
